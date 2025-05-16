@@ -1,5 +1,7 @@
 try {
-    const array = JSON.parse(process.argv[2]);
+    const lastIndex = process.argv.length - 1;
+    const arg = process.argv[lastIndex];
+    const array = JSON.parse(arg);
     const result = sum(array);
     
     function sum(array) {

@@ -62,5 +62,14 @@ export function removeById(id) {
 }
 
 export function updateById(id, name, freq) {
-  return "updated";
+  const allItems = db.get();
+  const item = allItems.find(i => i.id === id);
+
+  if (!item) return false;
+
+  item.name = name;
+  item.freq = freq;
+
+  db.save(allItems);
+  return item;
 }

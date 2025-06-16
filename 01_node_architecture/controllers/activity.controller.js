@@ -9,11 +9,19 @@ import {
 
 export function add({ name, freq }) {
   if (!name || !freq) throw new Error("Missing required fields");
-  return addNewActivity(name, freq);
+  const activity = addNewActivity(name, freq);
+  const body = [
+    'Added new activity:',
+    `ID: ${activity.id}`,
+    `Name: ${activity.name}`,
+    `Frequency: ${activity.freq}`,
+  ];
+  console.log(body.join('\n'));
 }
 
 export function list() {
-  return getAllActivities();
+  const list = getAllActivities();
+  console.table(list, ['id', 'name', 'freq', 'createdAt', 'updatedAt']);
 }
 
 export function done({ id }) {
@@ -22,7 +30,8 @@ export function done({ id }) {
 }
 
 export function stats() {
-  return getActivityStats();
+  const stats = getActivityStats();
+  console.table(stats);
 }
 
 export function remove({ id }) {

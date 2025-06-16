@@ -19,8 +19,7 @@ export class CreateCLI {
     }
 
     try {
-      const result = controller(args);
-      console.log(result);
+      controller(args);
     } catch (err) {
       console.error("\x1b[31m%s\x1b[0m", `Unhandled error: ${err.message}`);
     }

@@ -13,8 +13,7 @@ export function addNewActivity(name, freq) {
 }
 
 export function getAllActivities() {
-  const all = getAll();
-  return all;
+  return getAll();
 }
 
 export function setDoneActivity(id) {
@@ -22,7 +21,13 @@ export function setDoneActivity(id) {
 }
 
 export function getActivityStats() {
-  return getStats();
+  const stats = getStats();
+  const result = stats.map(i => ({
+    ...i,
+    weekly: `${i.weekly}%`,
+    monthly: `${i.monthly}%`,
+  }));
+  return result;
 }
 
 export function removeActivity(id) {

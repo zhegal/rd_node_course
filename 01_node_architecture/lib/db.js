@@ -8,7 +8,7 @@ const dbFileName = "database.json";
 
 const dbPath = join(__dirname, "..", dbFileName);
 
-export class Database {
+class Database {
   constructor(path = dbPath) {
     this.path = path;
     this.ensureFile();
@@ -34,3 +34,7 @@ export class Database {
     );
   }
 }
+
+const db = new Database();
+
+export default db;

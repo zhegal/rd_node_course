@@ -1,10 +1,14 @@
-import { Database } from "../lib/db.js";
+import db from '../lib/db.js';
 import { getCurrentDate } from "../lib/getCurrentDate.js";
 import { newIdFromArray } from "../lib/newIdFromArray.js";
+import { calculateStatsForItem, getLastNDates } from '../lib/statsHelpers.js';
 
-const db = new Database();
+const acceptFreqs = ['daily', 'weekly', 'monthly'];
 
 export function addNew(name, freq) {
+  if (!acceptFreqs.includes(freq)) {
+    throw new Error('Inadmissible frequency value');
+  }
   const allItems = db.get();
   const createdAt = getCurrentDate();
   const id = newIdFromArray(allItems);
@@ -47,7 +51,11 @@ export function setDoneById(id) {
 }
 
 export function getStats() {
-  return "stats";
+  const allItems = db.get();
+  const last7 = getLastNDates(7);
+  const last30 = getLastNDates(30);
+
+  return allItems.map(item => calculateStatsForItem(item, last7, last30));
 }
 
 export function removeById(id) {
@@ -62,6 +70,9 @@ export function removeById(id) {
 }
 
 export function updateById(id, name, freq) {
+  if (!acceptFreqs.includes(freq)) {
+    throw new Error('Inadmissible frequency value');
+  }
   const allItems = db.get();
   const item = allItems.find(i => i.id === id);
 

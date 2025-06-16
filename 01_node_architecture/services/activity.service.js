@@ -26,9 +26,9 @@ export function getActivityStats() {
 }
 
 export function removeActivity(id) {
-  return removeById(id);
+  return removeById(Number(id));
 }
 
 export function updateActivity(id, name, freq) {
-  return updateById(id, name, freq);
+  return updateById(Number(id), name, freq);
 }

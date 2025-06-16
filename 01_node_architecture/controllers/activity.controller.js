@@ -26,7 +26,8 @@ export function list() {
 
 export function done({ id }) {
   if (!id) throw new Error("Missing required fields");
-  return setDoneActivity(id);
+  const item = setDoneActivity(id);
+  console.log(`Activity "${item.name}" set as ✅ done for current day`);
 }
 
 export function stats() {
@@ -36,10 +37,18 @@ export function stats() {
 
 export function remove({ id }) {
   if (!id) throw new Error("Missing required fields");
-  return removeActivity(Number(id));
+  removeActivity(Number(id));
+  console.log(`Activity with id ${id} was successfully deleted`);
 }
 
 export function update({ id, name, freq }) {
   if (!id, !name, !freq) throw new Error("Missing required fields");
-  return updateActivity(id, name, freq);
+  const activity = updateActivity(id, name, freq);
+  const body = [
+    'Updated activity:',
+    `ID: ${activity.id}`,
+    `Name: ${activity.name}`,
+    `Frequency: ${activity.freq}`,
+  ];
+  console.log(body.join('\n'));
 }

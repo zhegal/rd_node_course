@@ -27,7 +27,7 @@ export function stats() {
 
 export function remove({ id }) {
   if (!id) throw new Error("Missing required fields");
-  return removeActivity(id);
+  return removeActivity(Number(id));
 }
 
 export function update({ id, name, freq }) {

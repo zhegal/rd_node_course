@@ -51,7 +51,14 @@ export function getStats() {
 }
 
 export function removeById(id) {
-  return "deleted";
+  const allItems = db.get();
+  const index = allItems.findIndex(i => i.id === id);
+
+  if (index === -1) return false;
+
+  allItems.splice(index, 1);
+  db.save(allItems);
+  return true;
 }
 
 export function updateById(id, name, freq) {

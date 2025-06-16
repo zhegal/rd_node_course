@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { CreateCLI } from "./cli.js";
 import { parseArgs } from "./lib/parseArgs.js";
 import { setupRoutes } from "./router.js";

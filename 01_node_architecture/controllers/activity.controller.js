@@ -1,3 +1,4 @@
+import { getCurrentDate } from "../lib/getCurrentDate.js";
 import {
   addNewActivity,
   getActivityStats,
@@ -27,7 +28,8 @@ export function list() {
 export function done({ id }) {
   if (!id) throw new Error("Missing required fields");
   const item = setDoneActivity(id);
-  console.log(`Activity "${item.name}" set as ✅ done for current day`);
+  const day = getCurrentDate();
+  console.log(`Activity "${item.name}" set as ✅ done for ${day}`);
 }
 
 export function stats() {

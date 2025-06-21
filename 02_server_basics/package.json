@@ -1,0 +1,16 @@
+{
+  "name": "node_js_server_basics",
+  "version": "1.0.0",
+  "description": "Simple CRUD app using Node.js",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "keywords": [],
+  "author": "Evgeniy Galkovskiy",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^16.5.0"
+  }
+}

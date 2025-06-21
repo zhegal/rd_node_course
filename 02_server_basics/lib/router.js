@@ -6,11 +6,20 @@ export async function router(req, res) {
     const routesDir = join(currentDir, '..', 'routes');
 
     const routePath = join(routesDir, 'route.js');
-    const routeHandler = await import(routePath);
 
     try {
-        routeHandler.default(req, res);
-    } catch (e) {
-        console.log('error', e);
+        const routeHandler = await import(routePath);
+        if (routeHandler && typeof routeHandler.default === 'function') {
+            await routeHandler.default(req, res);
+        } else {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: 'Invalid Route' }));
+        }
+    } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            message: 'Internal Server Error',
+            error: error.code
+        }));
     }
 }

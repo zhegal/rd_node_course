@@ -1,3 +1,3 @@
 export default async function (req, res) {
-    res.end('Hello there!');
+    res.end('Hello there');
 }

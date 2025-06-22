@@ -5,6 +5,7 @@ const ROUTE_FILE = 'route.js';
 
 export async function getRoutePath(req, dir) {
     let currentPath = dir;
+    const args = {};
     const urlPath = req.url.split('?')[0];
     const segments = urlPath.split('/').filter(Boolean);
 
@@ -21,12 +22,20 @@ export async function getRoutePath(req, dir) {
             );
 
         if (fallbackDir) {
-            currentPath = join(currentPath, fallbackDir.name);
-            continue;
+            const match = fallbackDir.name.match(/^\[(.+)\]$/);
+            if (match) {
+                const paramName = match[1];
+                args[paramName] = segment;
+                currentPath = join(currentPath, fallbackDir.name);
+                continue;
+            }
         }
 
         return false;
     }
 
-    return join(currentPath, ROUTE_FILE);
+    return {
+        path: join(currentPath, ROUTE_FILE),
+        args,
+    };
 }

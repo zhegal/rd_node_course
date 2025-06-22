@@ -6,16 +6,16 @@ const currentDir = dirname(fileURLToPath(import.meta.url));
 const routesDir = join(currentDir, '..', 'routes');
 
 export async function router(req, res) {
-    const routePath = await getRoutePath(req, routesDir);
-    if (!routePath) {
+    const route = await getRoutePath(req, routesDir);
+    if (!route) {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ message: 'Path Not Found' }));
     }
     
     try {
-        const routeHandler = await import(routePath);
+        const routeHandler = await import(route.path);
         if (routeHandler && typeof routeHandler.default === 'function') {
-            await routeHandler.default(req, res);
+            await routeHandler.default(req, res, route.args);
         } else {
             res.writeHead(500, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ message: 'Invalid Route' }));

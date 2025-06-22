@@ -1,3 +1,4 @@
-export default async function (req, res) {
-    res.end('It is user with id route!!!');
+export default async function (req, res, args) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ message: args }));
 }

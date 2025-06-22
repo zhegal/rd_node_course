@@ -6,6 +6,7 @@ const currentDir = dirname(fileURLToPath(import.meta.url));
 const routesDir = join(currentDir, '..', 'routes');
 
 export async function router(req, res) {
+    const { method } = req;
     const route = await getRoutePath(req, routesDir);
     if (!route) {
         res.writeHead(404, { 'Content-Type': 'application/json' });
@@ -14,11 +15,11 @@ export async function router(req, res) {
     
     try {
         const routeHandler = await import(route.path);
-        if (routeHandler && typeof routeHandler.default === 'function') {
-            await routeHandler.default(req, res, route.args);
+        if (routeHandler && routeHandler[method]) {
+            return await routeHandler[method](req, res, route.args);
         } else {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ message: 'Invalid Route' }));
+            res.writeHead(405, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: 'Invalid Method' }));
         }
     } catch (error) {
         res.writeHead(500, { 'Content-Type': 'application/json' });

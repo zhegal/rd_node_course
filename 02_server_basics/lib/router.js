@@ -1,6 +1,7 @@
 import { dirname, join } from 'path';
 import { fileURLToPath } from "url";
 import { getRoutePath } from './getRoutePath.js';
+import { respond } from './respond.js';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const routesDir = join(currentDir, '..', 'routes');
@@ -9,23 +10,20 @@ export async function router(req, res) {
     const { method } = req;
     const route = await getRoutePath(req, routesDir);
     if (!route) {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        return res.end(JSON.stringify({ message: 'Path Not Found' }));
+        const body = { message: 'Path Not Found' };
+        return respond(res, 404, body);
     }
     
     try {
-        const routeHandler = await import(route.path);
-        if (routeHandler && routeHandler[method]) {
-            return await routeHandler[method](req, res, route.args);
-        } else {
-            res.writeHead(405, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ message: 'Invalid Method' }));
-        }
+        const handleRoute = await import(route.path);
+        const target = new handleRoute.Route(req, res, route.args);
+        return await target.handle(method);
     } catch (error) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
+        console.error('Error:', error);
+        const body = {
             message: 'Internal Server Error',
             error: error.code
-        }));
+        };
+        return respond(res, 500, body);
     }
 }

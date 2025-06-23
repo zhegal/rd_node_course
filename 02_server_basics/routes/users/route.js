@@ -1,9 +1,20 @@
-export async function GET (req, res) {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ message: `Get list of all users` }));
-}
+import { BaseRoute } from "../../lib/BaseRoute.js";
+import { UsersService } from "../../services/users.service.js";
 
-export async function POST (req, res) {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ message: `Save new user` }));
+export class Route extends BaseRoute {
+    constructor(req, res, args) {
+        super(req, res, args);
+        this.service = new UsersService;
+    }
+
+    async GET() {
+        return this.service.getAll();
+    }
+
+    async POST() {
+        const body = await this.getBody();
+        const user = this.service.create(body);
+        this.res.statusCode = 201;
+        return user;
+    }
 }

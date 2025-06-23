@@ -1,20 +1,26 @@
-export async function GET (req, res, args) {
-    const { id } = args;
+import { BaseRoute } from "../../../lib/BaseRoute.js";
+import { UsersService } from "../../../services/users.service.js";
 
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ message: `Get user with id ${id}` }));
-}
+export class Route extends BaseRoute {
+    constructor(req, res, args) {
+        super(req, res, args);
+        this.service = new UsersService;
+    }
 
-export async function PATCH (req, res, args) {
-    const { id } = args;
+    async GET() {
+        const { id } = this.args;
+        return await this.service.findById(Number(id));
+    }
 
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ message: `Update user with id ${id}` }));
-}
+    async PATCH() {
+        const { id } = this.args;
+        const body = await this.getBody();
+        return await this.service.updateById(Number(id), body);
+    }
 
-export async function DELETE (req, res, args) {
-    const { id } = args;
-
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ message: `Delete user with id ${id}` }));
+    async DELETE() {
+        const { id } = this.args;
+        this.service.deleteById(Number(id));
+        this.res.statusCode = 204;
+    }
 }

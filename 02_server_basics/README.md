@@ -22,9 +22,9 @@
 ├── models/
 │   └── users.model.js           # Робота з JSON-базою: CRUD над юзерами
 ├── routes/                      # Folder-based маршрути
-│   ├── route.js                 # GET /users, POST /users
+│   ├── route.js                 # GET / (Hello world)
 │   └── users/
-│       ├── route.js             # GET /users
+│       ├── route.js             # GET, POST /users
 │       └── [id]/
 │           └── route.js         # GET, PATCH, DELETE /users/:id
 ├── services/

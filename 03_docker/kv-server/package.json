@@ -1,0 +1,24 @@
+{
+  "name": "kv-server",
+  "version": "1.0.0",
+  "description": "KV-server written with Express that uses redis-like server using Docker",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "keywords": [],
+  "author": "Evgeniy Galkovskiy",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@eslint/js": "^9.29.0",
+    "eslint": "^9.29.0",
+    "globals": "^16.2.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  }
+}

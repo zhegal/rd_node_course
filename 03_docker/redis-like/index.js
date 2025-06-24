@@ -17,14 +17,19 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && path === 'set') {
-        const body = await parseJsonBody(req);
-        if (body?.key && body?.value) {
-            database.set(body.key, body.value);
-            res.statusCode = 200;
-            return res.end(JSON.stringify({ ok: true }));
-        } else {
+        try {
+            const body = await parseJsonBody(req);
+            if (body?.key && body?.value) {
+                database.set(body.key, body.value);
+                res.statusCode = 200;
+                return res.end(JSON.stringify({ ok: true }));
+            } else {
+                res.statusCode = 400;
+                return res.end(JSON.stringify({ error: 'Missing "key" or "value"' }));
+            }
+        } catch {
             res.statusCode = 400;
-            return res.end(JSON.stringify({ error: 'Missing "key" or "value"' }));
+            return res.end(JSON.stringify({ error: 'Missing request body' }));
         }
     }
 

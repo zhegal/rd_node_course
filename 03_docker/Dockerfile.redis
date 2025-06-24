@@ -1,0 +1,10 @@
+FROM zhegal/node-base:latest
+WORKDIR /app
+
+COPY redis-like/package*.json ./
+RUN npm install
+
+COPY redis-like ./
+
+EXPOSE 4000
+CMD ["node", "index.js"]

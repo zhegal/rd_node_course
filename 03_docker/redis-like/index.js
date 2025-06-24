@@ -3,7 +3,7 @@ import http from "node:http";
 import { parseJsonBody } from "./lib/parseJsonBody.js";
 import { parse as parseQuery } from "node:querystring";
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 const database = new Map();
 
 const server = http.createServer(async (req, res) => {

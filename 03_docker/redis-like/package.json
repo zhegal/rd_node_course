@@ -1,0 +1,22 @@
+{
+  "name": "redis-like",
+  "version": "1.0.0",
+  "description": "Minimum functional redis-like Node.js HTTP-server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "keywords": [],
+  "author": "Evgeniy Galkovskiy",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^16.5.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.29.0",
+    "eslint-config-xo": "^0.47.0"
+  }
+}

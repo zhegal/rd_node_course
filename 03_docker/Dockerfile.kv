@@ -1,10 +1,16 @@
-FROM zhegal/node-base:latest
+FROM zhegal/node-base:latest AS builder
 WORKDIR /app
 
 COPY kv-server/package*.json ./
-RUN npm install
+RUN npm install --omit=dev
 
 COPY kv-server ./
+
+FROM zhegal/node-base:latest
+WORKDIR /app
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app ./
 
 EXPOSE 3000
 CMD ["node", "index.js"]

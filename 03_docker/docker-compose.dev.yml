@@ -12,8 +12,8 @@ services:
   kv:
     build:
       context: .
-      dockerfile: Dockerfile.kv
-    image: kv:latest
+      dockerfile: Dockerfile.kv.dev
+    image: kv:dev
     ports:
       - 8080:3000
     environment:
@@ -23,6 +23,9 @@ services:
       - redis
     networks:
       - internal
+    volumes:
+      - ./kv-server:/app
+      - /app/node_modules
 
 networks:
   internal:

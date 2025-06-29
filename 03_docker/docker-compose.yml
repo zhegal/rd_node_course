@@ -1,0 +1,26 @@
+services:
+  redis-like:
+    build:
+      context: .
+      dockerfile: Dockerfile.redis
+    expose:
+      - 4000
+    networks:
+      - internal
+
+  kv-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.kv
+    ports:
+      - 8080:3000
+    environment:
+      - PORT=3000
+      - REDIS_URL=http://redis-like:4000
+    depends_on:
+      - redis-like
+    networks:
+      - internal
+
+networks:
+  internal:

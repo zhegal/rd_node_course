@@ -1,4 +1,3 @@
-import "dotenv/config";
 import http from "node:http";
 import { parseJsonBody } from "./lib/parseJsonBody.js";
 import { parse as parseQuery } from "node:querystring";

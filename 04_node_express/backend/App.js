@@ -47,10 +47,23 @@ export class App {
 
     shutdown() {
         console.log('Shutting down gracefully');
-        this.server.close(() => {
+        this.server.close(async (err) => {
+            if (err) {
+                console.error('Error closing server', err);
+                process.exit(1);
+            }
             console.log('Closed out remaining connections');
+            try {
+                await container.dispose();
+                console.log('Container disposed');
+            } catch (disposeErr) {
+                console.error('Error disposing container', disposeErr);
+            }
             process.exit(0);
         });
-        setTimeout(() => process.exit(1), 10000).unref();
+        setTimeout(() => {
+            console.warn('Force exiting after timeout');
+            process.exit(1);
+        }, 10000).unref();
     }
 }

@@ -1,9 +1,9 @@
 export class BrewsService {
-    static scope = 'scoped';
+    static scope = 'singleton';
+    #store = new Map();
 
-    constructor(brewsModel) {
+    constructor() {
         console.log(`BrewsModel initialized`);
-        this.brewsModel = brewsModel;
     }
 
     getAll() {

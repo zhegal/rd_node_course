@@ -1,24 +1,34 @@
 import express from 'express';
+import morgan from 'morgan';
+import pino from 'pino-http';
 import { config } from './config/index.js';
 import compression from 'compression';
 import { router as brewsRouter } from './routes/brews.routes.js';
 import { scopePerRequest } from 'awilix-express';
 import { container } from './container.js';
+import { notFound } from './middlewares/notFound.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 
 export class App {
     constructor() {
         this.app = express();
+        this.env = config.env;
+        this.port = config.port;
+        this.getLogger();
         this.app.use(express.json());
         this.app.use(compression());
         this.getRoutes();
+    }
 
-        this.env = config.env;
-        this.port = config.port;
+    getLogger() {
+        this.app.use(this.env === 'dev' ? morgan('dev') : pino());
     }
 
     getRoutes() {
         this.app.use(scopePerRequest(container));
         this.app.use('/api/brews', brewsRouter);
+        this.app.use(notFound);
+        this.app.use(errorHandler);
     }
 
     start() {

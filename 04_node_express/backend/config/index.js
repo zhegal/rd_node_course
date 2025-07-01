@@ -2,13 +2,13 @@ import 'dotenv/config';
 import { z } from 'zod';
 
 const DEFAULT_PORT = 3000;
-const DEFAULT_ENV = 'development';
+const DEFAULT_ENV = 'dev';
 
 const numberStringSchema = (def) => z.coerce.number().default(def).transform(String);
 
 const schema = z.object({
     PORT:     numberStringSchema(DEFAULT_PORT),
-    NODE_ENV: z.enum(['development', 'production', 'test']).default(DEFAULT_ENV),
+    NODE_ENV: z.enum(['dev', 'prod', 'test']).default(DEFAULT_ENV),
 });
 
 const parsed = schema.parse(process.env);

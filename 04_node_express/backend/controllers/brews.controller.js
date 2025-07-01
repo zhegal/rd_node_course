@@ -28,7 +28,7 @@ export class BrewsController {
 
     remove(req, res) {
         const { id } = req.params;
-        this.brewsService.remove(req.params.id);
+        this.brewsService.remove(id);
         res.status(204).end();
     }
 }

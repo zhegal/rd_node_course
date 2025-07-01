@@ -16,7 +16,6 @@ export default defineConfig([
         extends: ["js/recommended"],
         rules: {
             indent: ["error", 4],
-            semi: ["error", "always"],
             "no-unused-vars": "warn",
             "no-undef": "warn",
             "object-curly-spacing": ["error", "always"],

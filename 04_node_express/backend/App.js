@@ -2,6 +2,8 @@ import express from 'express';
 import morgan from 'morgan';
 import pino from 'pino-http';
 import { config } from './config/index.js';
+import helmet from 'helmet';
+import cors from 'cors';
 import compression from 'compression';
 import { router as brewsRouter } from './routes/brews.routes.js';
 import { scopePerRequest } from 'awilix-express';
@@ -14,9 +16,13 @@ export class App {
         this.app = express();
         this.env = config.env;
         this.port = config.port;
-        this.getLogger();
-        this.app.use(express.json());
+
+        this.app.use(helmet());
+        this.app.use(cors());
         this.app.use(compression());
+        this.app.use(express.json());
+
+        this.getLogger();
         this.getRoutes();
     }
 

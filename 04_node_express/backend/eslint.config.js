@@ -20,6 +20,9 @@ export default defineConfig([
             "no-unused-vars": "warn",
             "no-undef": "warn",
             "object-curly-spacing": ["error", "always"],
+            "semi": ["error", "always"],
+            "no-trailing-spaces": ["error", { "skipBlankLines": false }],
+            "comma-dangle": ["error", "always-multiline"],
         },
     },
 ]);

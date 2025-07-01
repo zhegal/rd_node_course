@@ -12,5 +12,5 @@ const brewsModule = {
 
 export const container = createContainer({ injectionMode: 'CLASSIC' })
     .register(
-        objectMap(brewsModule, value => asClass(value)[value.scope]())
+        objectMap(brewsModule, value => asClass(value)[value.scope]()),
     );

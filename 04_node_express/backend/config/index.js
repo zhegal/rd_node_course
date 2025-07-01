@@ -8,7 +8,7 @@ const numberStringSchema = (def) => z.coerce.number().default(def).transform(Str
 
 const schema = z.object({
     PORT:     numberStringSchema(DEFAULT_PORT),
-    NODE_ENV: z.enum(['development', 'production', 'test']).default(DEFAULT_ENV)
+    NODE_ENV: z.enum(['development', 'production', 'test']).default(DEFAULT_ENV),
 });
 
 const parsed = schema.parse(process.env);

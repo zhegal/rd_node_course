@@ -4,7 +4,6 @@ import { defineConfig } from "eslint/config";
 
 export default defineConfig([
     {
-        ecmaVersion: "latest",
         files: ["**/*.{js,mjs,cjs}"],
         languageOptions: {
             ecmaVersion: 2022,
@@ -20,6 +19,7 @@ export default defineConfig([
             semi: ["error", "always"],
             "no-unused-vars": "warn",
             "no-undef": "warn",
+            "object-curly-spacing": ["error", "always"],
         },
     },
 ]);

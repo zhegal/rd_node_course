@@ -1,12 +1,24 @@
 import express from 'express';
-import { config } from './config.js';
+import { config } from './config/index.js';
+import compression from 'compression';
+import { router as brewsRouter } from './routes/brews.routes.js';
+import { scopePerRequest } from 'awilix-express';
+import { container } from './container.js';
 
 export class App {
     constructor() {
         this.app = express();
         this.app.use(express.json());
+        this.app.use(compression());
+        this.getRoutes();
+
         this.env = config.env;
         this.port = config.port;
+    }
+
+    getRoutes() {
+        this.app.use(scopePerRequest(container));
+        this.app.use('/api/brews', brewsRouter);
     }
 
     start() {

@@ -1,1 +1,3 @@
-export class BrewsService {}
+export class BrewsService {
+    static scope = 'scoped';
+}

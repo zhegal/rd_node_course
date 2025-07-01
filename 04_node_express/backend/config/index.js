@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import { z } from 'zod';
-import pkg from '../../package.json' assert { type: 'json' };
 
 const DEFAULT_PORT = 3000;
 const DEFAULT_ENV = 'development';
@@ -17,7 +16,6 @@ const parsed = schema.parse(process.env);
 export const config = {
     port: parsed.PORT,
     env:  parsed.NODE_ENV,
-    baseUrl: `http://localhost:${parsed.PORT}`,
     appName: 'Coffee Brew Log API',
-    appVersion: pkg.vesrion,
+    baseUrl: `http://localhost:${parsed.PORT}`,
 };

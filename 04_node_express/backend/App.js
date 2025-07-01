@@ -1,10 +1,12 @@
 import express from 'express';
+import { config } from './config.js';
 
 export class App {
     constructor() {
         this.app = express();
         this.app.use(express.json());
-        this.port = process.env.PORT || 3000;
+        this.env = config.env;
+        this.port = config.port;
     }
 
     start() {

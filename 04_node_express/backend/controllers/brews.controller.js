@@ -6,8 +6,8 @@ export class BrewsController {
         this.brewsService = brewsService;
     }
 
-    index(_req, res) {
-        res.json(this.brewsService.getAll());
+    index(req, res) {
+        res.json(this.brewsService.getAll(req.validatedQuery));
     }
 
     show(req, res) {

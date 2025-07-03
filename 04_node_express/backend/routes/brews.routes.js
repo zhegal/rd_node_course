@@ -7,6 +7,8 @@ import { BrewDTO } from '../dto/BrewDTO.js';
 import { asyncHandler } from '../middlewares/asyncHandler.js';
 import { registry } from '../openapi/registry.js';
 import { z } from 'zod';
+import { validateQuery } from '../middlewares/validateQuery.js';
+import { GetAllQueryDTO } from '../dto/GetAllQueryDTO.js';
 
 const router = Router();
 const ctl = makeClassInvoker(BrewsController);
@@ -22,15 +24,33 @@ const postLimiter = rateLimit({
     legacyHeaders: false,
 });
 
-router.get('/', asyncHandler(ctl('index')));
+router.get('/', validateQuery(GetAllQueryDTO), asyncHandler(ctl('index')));
 registry.registerPath({
     method: 'get',
     path: '/api/brews',
     tags: ['Brews'],
+    request: {
+        query: GetAllQueryDTO,
+    },
     responses: {
         200: {
             description: 'Array of brews',
-            content: { 'application/json': { schema: z.array(BrewDTO) } },
+            content: {
+                'application/json': {
+                    schema: z.array(BrewDTO),
+                },
+            },
+        },
+        400: {
+            description: 'Validation error',
+            content: {
+                'application/json': {
+                    schema: z.object({
+                        errors: z.any(),
+                        where: z.string(),
+                    }),
+                },
+            },
         },
     },
 });

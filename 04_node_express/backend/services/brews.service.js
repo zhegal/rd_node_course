@@ -6,37 +6,59 @@ export class BrewsService {
         console.log(`BrewsModel initialized`);
     }
 
-    getAll() {
-        return {
-            message: 'Get All!',
-        };
+    getAll(query = {}) {
+        const min = query.ratingMin ?? 0;
+        const method = query.method;
+
+        return Array.from(this.#store.values()).filter((brew) => {
+            const passRating =
+                typeof brew.rating === 'number' ? brew.rating >= min : true;
+            const passMethod =
+                method ? brew.method === method : true;
+
+            return passRating && passMethod;
+        });
     }
 
     getOne(id) {
-        return {
-            id,
-            message: 'Get One!',
-        };
+        const brew = this.#store.get(id);
+        if (!brew) {
+            throw Object.assign(
+                new Error(`Brew with id ${id} not found`),
+                { status: 404 },
+            );
+        }
+        return brew;
     }
 
     create(body) {
-        return {
-            ...body,
-            message: 'Created!',
-        };
+        const id = crypto.randomUUID();
+        const brew = { id, ...body };
+        this.#store.set(id, brew);
+        return brew;
     }
 
     update(id, body) {
-        return {
-            id, ...body,
-            message: 'Updated',
-        };
+        const brew = this.#store.get(id);
+        if (!brew) {
+            throw Object.assign(
+                new Error(`Brew with id ${id} not found`),
+                { status: 404 },
+            );
+        }
+        const updated = { ...brew, ...body };
+        this.#store.set(id, updated);
+        return updated;
     }
 
     remove(id) {
-        return {
-            id,
-            message: 'Removed',
-        };
+        const existed = this.#store.delete(id);
+        if (!existed) {
+            throw Object.assign(
+                new Error(`Brew with id ${id} not found`),
+                { status: 404 },
+            );
+        }
+        return;
     }
 }

@@ -10,6 +10,8 @@ import { scopePerRequest } from 'awilix-express';
 import { container } from './container.js';
 import { notFound } from './middlewares/notFound.js';
 import { errorHandler } from './middlewares/errorHandler.js';
+import swaggerUi from 'swagger-ui-express';
+import { openApiDocument } from './docs/index.js';
 
 export class App {
     constructor() {
@@ -33,8 +35,16 @@ export class App {
     getRoutes() {
         this.app.use(scopePerRequest(container));
         this.app.use('/api/brews', brewsRouter);
+        this.useDocs();
         this.app.use(notFound);
         this.app.use(errorHandler);
+    }
+
+    useDocs() {
+        if (this.env === 'dev') {
+            this.app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
+            console.log(`Swagger docs → ${config.baseUrl}/docs`);
+        }
     }
 
     start() {

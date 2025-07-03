@@ -22,6 +22,7 @@ USER node
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/dist ./dist
+ENV NODE_ENV=prod
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "./dist/server.mjs"]
 EXPOSE 3000

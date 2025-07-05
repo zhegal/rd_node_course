@@ -1,4 +1,18 @@
-import z from 'zod';
-import { TeaSchema } from '../schemas/tea.schema';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export type CreateTeaDto = z.infer<typeof TeaSchema>;
+export class CreateTeaDto {
+  @ApiProperty({ minLength: 3, maxLength: 40 })
+  name: string;
+
+  @ApiProperty({ minLength: 2, maxLength: 30 })
+  origin: string;
+
+  @ApiPropertyOptional({ minimum: 1, maximum: 10 })
+  rating?: number;
+
+  @ApiPropertyOptional({ minimum: 60, maximum: 100 })
+  brewTemp?: number;
+
+  @ApiPropertyOptional({ maxLength: 150 })
+  notes?: string;
+}

@@ -1,7 +1,7 @@
 {
   "name": "tea-tracker",
-  "version": "0.0.1",
-  "description": "",
+  "version": "1.0",
+  "description": "Tea Tracker NestJS App",
   "author": "Evgeniy Galkovskiy",
   "private": true,
   "license": "UNLICENSED",

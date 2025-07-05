@@ -9,10 +9,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Nest Demo API')
-    .setDescription('Mini-проєкт Nest')
+    .setTitle('Tea Tracker API')
+    .setDescription('Tea Tracker NestJS App')
     .setVersion('1.0')
-    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);

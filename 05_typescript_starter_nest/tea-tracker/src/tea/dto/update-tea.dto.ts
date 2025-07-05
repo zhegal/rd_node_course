@@ -1,5 +1,4 @@
-import z from 'zod';
-import { TeaSchema } from '../schemas/tea.schema';
+import { PartialType } from '@nestjs/swagger';
+import { CreateTeaDto } from './create-tea.dto';
 
-export const UpdateTeaSchema = TeaSchema.partial();
-export type UpdateTeaDto = z.infer<typeof UpdateTeaSchema>;
+export class UpdateTeaDto extends PartialType(CreateTeaDto) {}

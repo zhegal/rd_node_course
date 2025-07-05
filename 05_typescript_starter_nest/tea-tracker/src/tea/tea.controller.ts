@@ -17,6 +17,7 @@ import { CreateTeaDto } from './dto/create-tea.dto';
 import { UpdateTeaDto } from './dto/update-tea.dto';
 import { Pagination } from 'src/types/pagination.type';
 import { SkipThrottle } from '@nestjs/throttler';
+import { ApiBody } from '@nestjs/swagger';
 
 @SkipThrottle()
 @Controller('tea')
@@ -39,12 +40,14 @@ export class TeaController {
   }
 
   @Post()
+  @ApiBody({ type: CreateTeaDto })
   @SkipThrottle({ default: false })
   async create(@ZBody(TeaSchema) dto: CreateTeaDto) {
     return await this.tea.create(dto);
   }
 
   @Put(':id')
+  @ApiBody({ type: UpdateTeaDto })
   async update(@Param('id') id: string, @ZBody(TeaSchema) dto: UpdateTeaDto) {
     return await this.tea.update(id, dto);
   }

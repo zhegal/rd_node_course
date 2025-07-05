@@ -18,6 +18,7 @@ import { UpdateTeaDto } from './dto/update-tea.dto';
 import { Pagination } from 'src/types/pagination.type';
 import { SkipThrottle } from '@nestjs/throttler';
 import { ApiBody } from '@nestjs/swagger';
+import { Public } from 'src/decorators/public.decorator';
 
 @SkipThrottle()
 @Controller('tea')
@@ -25,6 +26,7 @@ export class TeaController {
   constructor(private readonly tea: TeaService) {}
 
   @Get()
+  @Public()
   async getAll(
     @Query('minRating', new DefaultValuePipe(0), ParseIntPipe)
     minRating: number,

@@ -1,25 +1,34 @@
 import {
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   HttpCode,
   Param,
+  ParseIntPipe,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { TeaService } from './tea.service';
 import { Tea, TeaSchema } from './schemas/tea.schema';
 import { ZBody } from 'src/decorators/z-body.decorator';
 import { CreateTeaDto } from './dto/create-tea.dto';
 import { UpdateTeaDto } from './dto/update-tea.dto';
+import { Pagination } from 'src/types/pagination.type';
 
 @Controller('tea')
 export class TeaController {
   constructor(private readonly tea: TeaService) {}
 
   @Get()
-  async getAll(): Promise<Tea[]> {
-    return await this.tea.getAll();
+  async getAll(
+    @Query('minRating', new DefaultValuePipe(0), ParseIntPipe)
+    minRating: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+  ): Promise<Pagination<Tea>> {
+    return await this.tea.getAll(minRating, page, pageSize);
   }
 
   @Get(':id')

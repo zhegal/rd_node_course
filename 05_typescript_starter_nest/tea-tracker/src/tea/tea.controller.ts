@@ -16,7 +16,9 @@ import { ZBody } from 'src/decorators/z-body.decorator';
 import { CreateTeaDto } from './dto/create-tea.dto';
 import { UpdateTeaDto } from './dto/update-tea.dto';
 import { Pagination } from 'src/types/pagination.type';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('tea')
 export class TeaController {
   constructor(private readonly tea: TeaService) {}
@@ -37,6 +39,7 @@ export class TeaController {
   }
 
   @Post()
+  @SkipThrottle({ default: false })
   async create(@ZBody(TeaSchema) dto: CreateTeaDto) {
     return await this.tea.create(dto);
   }

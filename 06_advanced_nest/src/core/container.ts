@@ -1,12 +1,12 @@
 import "reflect-metadata";
 
-type Constructor<T = any> = new (...args: any[]) => T;
+export type Constructor<T = any> = new (...args: any[]) => T;
 
 export class Container {
   #registered = new Map();
   #singletons = new Map();
 
-  resolve<T>(token: new (...args: any[]) => T): T {
+  resolve<T>(token: Constructor<T>): T {
     if (this.#singletons.has(token)) {
       return this.#singletons.get(token);
     }

@@ -1,10 +1,10 @@
 import "reflect-metadata";
 
-interface ModuleMetadata {
+export type ModuleMetadata = {
   providers?: any[];
   controllers?: any[];
   imports?: any[];
-}
+};
 
 export function Module(metadata: ModuleMetadata) {
   return function (target: any) {

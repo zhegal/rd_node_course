@@ -2,7 +2,13 @@ import express, { Express } from "express";
 import { Constructor } from "./container";
 
 export class NestFactory {
-  #providers = new Set();
+  #containers = new Map<
+    Constructor,
+    {
+      providers: Map<Constructor, Constructor>;
+      exports: Set<Constructor>;
+    }
+  >();
 
   static async create(AppModule: any) {
     const factory = new NestFactory();
@@ -27,19 +33,29 @@ export class NestFactory {
     const metadata = Reflect.getMetadata("module:metadata", module) || {};
     console.log(`Processing module: ${module.name}`);
 
+    const providersMap = new Map<Constructor, Constructor>();
+    const exportsSet = new Set<Constructor>();
+
     if (metadata.providers) {
-      metadata.providers.forEach((prov: any) => this.#providers.add(prov));
+      metadata.providers.forEach((prov: Constructor) => {
+        providersMap.set(prov, prov);
+        console.log(`Registered provider in module: ${prov.name}`);
+      });
     }
+    this.#containers.set(module, {
+      providers: providersMap,
+      exports: exportsSet,
+    });
 
     if (metadata.imports) {
-      metadata.imports.forEach((imported: any) => {
+      metadata.imports.forEach((imported: Constructor) => {
         this.#processModule(imported);
       });
     }
 
     if (metadata.controllers) {
-      metadata.controllers.forEach((ctrl: any) => {
-        console.log(`Controller found: ${ctrl.name}`);
+      metadata.controllers.forEach((ctrl: Constructor) => {
+        console.log(`Found controller: ${ctrl.name}`);
       });
     }
   }

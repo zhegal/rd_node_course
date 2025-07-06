@@ -1,9 +1,11 @@
 import "reflect-metadata";
+import { Constructor } from "../container";
 
 export type ModuleMetadata = {
-  providers?: any[];
-  controllers?: any[];
-  imports?: any[];
+  providers?: Constructor[];
+  controllers?: Constructor[];
+  imports?: Constructor[];
+  exports?: Constructor[];
 };
 
 export function Module(metadata: ModuleMetadata) {

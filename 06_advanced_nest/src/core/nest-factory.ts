@@ -6,10 +6,11 @@ export class NestFactory {
     app.use(express.json());
 
     return {
-      listen: async (port: number) =>
+      listen: async (port: number, callback?: () => void) =>
         new Promise<void>((resolve) => {
           app.listen(port, () => {
             console.log(`Server is started on ${port} port`);
+            if (callback) callback();
             resolve();
           });
         }),

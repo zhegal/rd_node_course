@@ -1,4 +1,5 @@
-import { Constructor, container } from "../container";
+import { container } from "../container";
+import { Constructor } from "../types/constructor.type";
 
 export function Injectable() {
   return function (target: Constructor) {

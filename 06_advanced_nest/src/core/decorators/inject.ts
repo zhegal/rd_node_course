@@ -1,9 +1,7 @@
 import "reflect-metadata";
+import { InjectToken } from "../types/inject-token.type";
 
-type Constructor<T = any> = new (...args: any[]) => T;
-type Token<T = any> = string | symbol | Constructor<T>;
-
-export function Inject(token: Token) {
+export function Inject(token: InjectToken) {
   return function (target: Object, _: any, parameterIndex: number) {
     const existing = Reflect.getMetadata("custom:inject_tokens", target) || {};
     existing[parameterIndex] = token;

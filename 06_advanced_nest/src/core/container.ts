@@ -1,6 +1,5 @@
 import "reflect-metadata";
-
-export type Constructor<T = any> = new (...args: any[]) => T;
+import { Constructor } from "./types/constructor.type";
 
 export class Container {
   #registered = new Map();

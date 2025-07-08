@@ -1,8 +1,8 @@
 import express, { Express, Request, Response } from "express";
 import { container } from "./container";
 import "reflect-metadata";
-import { Route } from "./types/route.type";
 import { Constructor } from "./types/constructor.type";
+import { registerRoutes } from "./utils/registerRoutes";
 
 export class NestFactory {
   #containers = new Map<
@@ -16,11 +16,10 @@ export class NestFactory {
   static async create(AppModule: any) {
     const factory = new NestFactory();
     const app: Express = express();
-
-    factory.#processModule(AppModule, app);
-
     app.use(express.json());
 
+    factory.#processModule(AppModule, app);
+    
     return {
       listen: async (port: number, callback?: () => void) =>
         new Promise<void>((resolve) => {
@@ -41,29 +40,7 @@ export class NestFactory {
       metadata.controllers.forEach((ctrl: Constructor) => {
         console.log(`Found controller: ${ctrl.name}`);
         container.register(ctrl, ctrl);
-
-        const prefix = Reflect.getMetadata("controller:prefix", ctrl) || "";
-        const routes = Reflect.getMetadata("controller:routes", ctrl) || [];
-
-        const instance = container.resolve(ctrl);
-
-        routes.forEach((route: Route) => {
-          const fullPath =
-            "/" +
-            [prefix, route.path].filter(Boolean).join("/").replace(/\/+/g, "/");
-          app[route.method](fullPath, (req: Request, res: Response) => {
-            const result = instance[route.handler](req, res);
-            if (result instanceof Promise) {
-              result
-                .then((data) => res.send(data))
-                .catch((err) => res.status(500).send(err));
-            } else {
-              res.send(result);
-            }
-          });
-
-          console.log(`Registered ${route.method.toUpperCase()} ${fullPath}`);
-        });
+        registerRoutes(app, ctrl);
       });
     }
 

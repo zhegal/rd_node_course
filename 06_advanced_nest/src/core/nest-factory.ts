@@ -40,6 +40,8 @@ export class NestFactory {
     if (metadata.controllers) {
       metadata.controllers.forEach((ctrl: Constructor) => {
         console.log(`Found controller: ${ctrl.name}`);
+        container.register(ctrl, ctrl);
+
         const prefix = Reflect.getMetadata("controller:prefix", ctrl) || "";
         const routes = Reflect.getMetadata("controller:routes", ctrl) || [];
 

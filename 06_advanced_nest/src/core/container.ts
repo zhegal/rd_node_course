@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { Constructor } from "./types/constructor.type";
+import { Constructor } from "./types";
 
 export class Container {
   #registered = new Map();

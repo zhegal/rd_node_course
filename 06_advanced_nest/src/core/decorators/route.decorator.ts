@@ -1,4 +1,4 @@
-import { Method } from "../types/method.type";
+import { Method } from "../types";
 
 export function Route(method: Method, path: string) {
   return function (target: any, key: string) {

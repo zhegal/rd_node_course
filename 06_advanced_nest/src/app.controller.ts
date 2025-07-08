@@ -1,6 +1,4 @@
-import { Controller } from "./core/decorators/controller";
-import { Body, Param, Query } from "./core/decorators/param";
-import { Get, Post } from "./core/decorators/route";
+import { Body, Controller, Get, Param, Post, Query } from "./core/decorators";
 
 @Controller()
 export class AppController {

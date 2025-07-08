@@ -1,7 +1,7 @@
-import express, { Express, Request, Response } from "express";
-import { container } from "./container";
 import "reflect-metadata";
-import { Constructor } from "./types/constructor.type";
+import express, { Express } from "express";
+import { Constructor } from "./types";
+import { container } from "./container";
 import { registerRoutes } from "./utils/registerRoutes";
 
 export class NestFactory {
@@ -19,7 +19,7 @@ export class NestFactory {
     app.use(express.json());
 
     factory.#processModule(AppModule, app);
-    
+
     return {
       listen: async (port: number, callback?: () => void) =>
         new Promise<void>((resolve) => {

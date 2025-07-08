@@ -1,5 +1,4 @@
-import { ArgumentMetadata } from "../types/argument-metadata.type";
-import { ParamType } from "../types/param.type";
+import { ArgumentMetadata, ParamType } from "../types";
 
 function paramDecorator(type: ParamType) {
   return function (data?: string): ParameterDecorator {

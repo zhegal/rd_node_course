@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { InjectToken } from "../types/inject-token.type";
+import { InjectToken } from "../types";
 
 export function Inject(token: InjectToken) {
   return function (target: Object, _: any, parameterIndex: number) {

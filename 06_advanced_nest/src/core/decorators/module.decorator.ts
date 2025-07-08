@@ -1,6 +1,5 @@
 import "reflect-metadata";
-import { ModuleMetadata } from "../types/module-metadata.type";
-import { Constructor } from "../types/constructor.type";
+import { Constructor, ModuleMetadata } from "../types";
 
 export function Module(metadata: ModuleMetadata) {
   return function (target: Constructor) {

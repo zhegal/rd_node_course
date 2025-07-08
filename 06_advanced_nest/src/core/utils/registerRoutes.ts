@@ -1,8 +1,6 @@
-import { Express, Request, Response } from "express";
 import { container } from "../container";
-import { Constructor } from "../types/constructor.type";
-import { ArgumentMetadata } from "../types/argument-metadata.type";
-import { Route } from "../types/route.type";
+import { Express, Request, Response } from "express";
+import { ArgumentMetadata, Constructor, Route } from "../types";
 
 export function registerRoutes(app: Express, controller: Constructor) {
   const prefix = Reflect.getMetadata("controller:prefix", controller) || "";

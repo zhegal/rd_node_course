@@ -2,6 +2,7 @@ import { container } from "../container";
 import { Express, Request, Response } from "express";
 import { ArgumentMetadata, Type, Route } from "../types";
 import { runPipes } from "./runPipes";
+import { HttpException } from "../exceptions";
 
 export async function registerRoutes(
   app: Express,
@@ -64,14 +65,17 @@ export async function registerRoutes(
         const result = await instance[route.handler](...args);
         res.send(result);
       } catch (err: any) {
-        if (err?.status === 400) {
-          res.status(400).json({
-            statusCode: 400,
+        if (err instanceof HttpException) {
+          res.status(err.status).json({
+            statusCode: err.status,
             message: err.message,
-            error: "Bad Request",
+            error: err.name,
           });
         } else {
-          res.status(500).send(err);
+          res.status(500).json({
+            statusCode: 500,
+            message: "Internal Server Error",
+          });
         }
       }
     });

@@ -1,6 +1,6 @@
+import { ZodSchema } from "zod";
 import { BadRequestException } from "../core/exceptions";
 import { ArgumentMetadata, PipeTransform } from "../core/types";
-import { ZodSchema } from "zod";
 
 export class ZodValidationPipe implements PipeTransform {
   constructor(private readonly schema: ZodSchema) {}

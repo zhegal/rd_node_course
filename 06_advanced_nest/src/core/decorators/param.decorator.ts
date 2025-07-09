@@ -1,11 +1,25 @@
 import { ArgumentMetadata, ParamType, PipesType } from "../types";
 
 function paramDecorator(type: ParamType) {
-  return function (data?: string, ...pipes: PipesType[]): ParameterDecorator {
+  return function (
+    dataOrPipe?: string | PipesType,
+    ...restPipes: PipesType[]
+  ): ParameterDecorator {
     return (target: any, name: string | symbol, index: number) => {
       const paramTypes =
         Reflect.getMetadata("design:paramtypes", target, name) ?? [];
       const metatype = paramTypes[index];
+
+      let data: string | undefined;
+      let pipes: PipesType[] = [];
+
+      if (typeof dataOrPipe === "string") {
+        data = dataOrPipe;
+        pipes = restPipes;
+      } else {
+        data = undefined;
+        pipes = [dataOrPipe, ...restPipes].filter(Boolean) as PipesType[];
+      }
 
       const params: ArgumentMetadata[] =
         Reflect.getMetadata("mini:params", target, name) ?? [];

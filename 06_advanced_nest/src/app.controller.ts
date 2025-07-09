@@ -1,3 +1,4 @@
+import z from "zod";
 import {
   Body,
   Controller,
@@ -6,17 +7,22 @@ import {
   Post,
   Query,
 } from "./core/decorators";
-import { UpperCasePipe } from "./pipes/upper-case.pipe";
+import { ZodValidationPipe } from "./pipes";
+
+const userSchema = z.object({
+  name: z.string().min(3),
+  age: z.number().int().nonnegative()
+});
 
 @Controller()
 export class AppController {
   @Get()
-  getHello(@Query("test", new UpperCasePipe()) value: string) {
+  getHello(@Query("test") value: string) {
     return { message: "Hello world!!!", value };
   }
 
   @Post()
-  create(@Body() body: any) {
+  create(@Body(new ZodValidationPipe(userSchema)) body: any) {
     return { message: "created", body };
   }
 

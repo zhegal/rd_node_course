@@ -1,7 +1,7 @@
-import { ArgumentMetadata, ParamType } from "../types";
+import { ArgumentMetadata, ParamType, PipesType } from "../types";
 
 function paramDecorator(type: ParamType) {
-  return function (data?: string): ParameterDecorator {
+  return function (data?: string, ...pipes: PipesType[]): ParameterDecorator {
     return (target: any, name: string | symbol, index: number) => {
       const paramTypes =
         Reflect.getMetadata("design:paramtypes", target, name) ?? [];
@@ -16,6 +16,7 @@ function paramDecorator(type: ParamType) {
         metatype,
         data,
         name: name.toString(),
+        pipes,
       });
 
       Reflect.defineMetadata("mini:params", params, target, name);

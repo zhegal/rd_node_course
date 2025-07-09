@@ -3,7 +3,11 @@ import { Express, Request, Response } from "express";
 import { ArgumentMetadata, Type, Route } from "../types";
 import { runPipes } from "./runPipes";
 
-export async function registerRoutes(app: Express, controller: Type) {
+export async function registerRoutes(
+  app: Express,
+  controller: Type,
+  globalPipes: Type[] = []
+) {
   const prefix = Reflect.getMetadata("controller:prefix", controller) || "";
   const routes: Route[] =
     Reflect.getMetadata("controller:routes", controller) || [];
@@ -53,7 +57,8 @@ export async function registerRoutes(app: Express, controller: Type) {
           controller,
           instance[route.handler],
           rawValue,
-          meta
+          meta,
+          [...(meta.pipes ?? []), ...globalPipes]
         );
       }
 

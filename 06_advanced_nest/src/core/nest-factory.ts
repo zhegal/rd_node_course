@@ -2,7 +2,7 @@ import "reflect-metadata";
 import express, { Express } from "express";
 import { container } from "./container";
 import { registerRoutes } from "./utils/registerRoutes";
-import { Type } from "./types";
+import { PipeTransform, Type } from "./types";
 
 export class NestFactory {
   #containers = new Map<
@@ -12,6 +12,7 @@ export class NestFactory {
       exports: Set<Type>;
     }
   >();
+  #globalPipes: Type<PipeTransform>[] = [];
 
   static async create(AppModule: any) {
     const factory = new NestFactory();
@@ -29,6 +30,8 @@ export class NestFactory {
             resolve();
           });
         }),
+      useGlobalPipes: (...pipes: Type<PipeTransform>[]) =>
+        factory.useGlobalPipes(...pipes),
     };
   }
 
@@ -40,7 +43,7 @@ export class NestFactory {
       metadata.controllers.forEach((ctrl: Type) => {
         console.log(`Found controller: ${ctrl.name}`);
         container.register(ctrl, ctrl);
-        registerRoutes(app, ctrl);
+        registerRoutes(app, ctrl, this.#globalPipes);
       });
     }
 
@@ -63,5 +66,9 @@ export class NestFactory {
         this.#processModule(imported, app);
       });
     }
+  }
+
+  useGlobalPipes(...pipes: Type<PipeTransform>[]) {
+    this.#globalPipes.push(...pipes);
   }
 }

@@ -5,15 +5,13 @@ import {
   Param,
   Post,
   Query,
-  UsePipes,
 } from "./core/decorators";
 import { UpperCasePipe } from "./pipes/upper-case.pipe";
 
 @Controller()
-@UsePipes(UpperCasePipe)
 export class AppController {
   @Get()
-  getHello(@Query("test") value: string) {
+  getHello(@Query("test", new UpperCasePipe()) value: string) {
     return { message: "Hello world!!!", value };
   }
 

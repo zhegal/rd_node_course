@@ -1,8 +1,8 @@
 import { container } from "../container";
-import { Constructor } from "../types";
+import { Type } from "../types";
 
 export function Injectable() {
-  return function (target: Constructor) {
+  return function (target: Type) {
     container.register(target, target);
   };
 }

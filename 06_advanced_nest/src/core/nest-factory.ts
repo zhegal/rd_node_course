@@ -1,15 +1,15 @@
 import "reflect-metadata";
 import express, { Express } from "express";
-import { Constructor } from "./types";
 import { container } from "./container";
 import { registerRoutes } from "./utils/registerRoutes";
+import { Type } from "./types";
 
 export class NestFactory {
   #containers = new Map<
-    Constructor,
+    Type,
     {
-      providers: Map<Constructor, Constructor>;
-      exports: Set<Constructor>;
+      providers: Map<Type, Type>;
+      exports: Set<Type>;
     }
   >();
 
@@ -32,23 +32,23 @@ export class NestFactory {
     };
   }
 
-  #processModule(module: Constructor, app: Express) {
+  #processModule(module: Type, app: Express) {
     const metadata = Reflect.getMetadata("module:metadata", module) || {};
     console.log(`Processing module: ${module.name}`);
 
     if (metadata.controllers) {
-      metadata.controllers.forEach((ctrl: Constructor) => {
+      metadata.controllers.forEach((ctrl: Type) => {
         console.log(`Found controller: ${ctrl.name}`);
         container.register(ctrl, ctrl);
         registerRoutes(app, ctrl);
       });
     }
 
-    const providersMap = new Map<Constructor, Constructor>();
-    const exportsSet = new Set<Constructor>();
+    const providersMap = new Map<Type, Type>();
+    const exportsSet = new Set<Type>();
 
     if (metadata.providers) {
-      metadata.providers.forEach((prov: Constructor) => {
+      metadata.providers.forEach((prov: Type) => {
         providersMap.set(prov, prov);
         console.log(`Registered provider in module: ${prov.name}`);
       });
@@ -59,7 +59,7 @@ export class NestFactory {
     });
 
     if (metadata.imports) {
-      metadata.imports.forEach((imported: Constructor) => {
+      metadata.imports.forEach((imported: Type) => {
         this.#processModule(imported, app);
       });
     }

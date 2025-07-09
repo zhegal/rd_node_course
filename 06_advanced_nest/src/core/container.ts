@@ -1,11 +1,11 @@
 import "reflect-metadata";
-import { Constructor } from "./types";
+import { Type } from "./types";
 
 export class Container {
   #registered = new Map();
   #singletons = new Map();
 
-  resolve<T>(token: Constructor<T>): T {
+  resolve<T>(token: Type<T>): T {
     if (this.#singletons.has(token)) {
       return this.#singletons.get(token);
     }
@@ -14,9 +14,9 @@ export class Container {
       throw new Error(`Token ${token.name} is not registered.`);
     }
 
-    const paramTypes: Constructor[] =
+    const paramTypes: Type[] =
       Reflect.getMetadata("design:paramtypes", token) || [];
-    const injectTokens: Record<number, Constructor> =
+    const injectTokens: Record<number, Type> =
       Reflect.getMetadata("custom:inject_tokens", token) || {};
 
     const resolvedParams = paramTypes.map((originalToken, index) => {

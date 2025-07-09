@@ -1,8 +1,8 @@
-import { Constructor } from "./constructor.type";
+import { Type } from "./type.interface";
 
 export type ModuleMetadata = {
-  providers?: Constructor[];
-  controllers?: Constructor[];
-  imports?: Constructor[];
-  exports?: Constructor[];
+  providers?: Type[];
+  controllers?: Type[];
+  imports?: Type[];
+  exports?: Type[];
 };

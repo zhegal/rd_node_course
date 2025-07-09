@@ -1,6 +1,16 @@
-import { Body, Controller, Get, Param, Post, Query } from "./core/decorators";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UsePipes,
+} from "./core/decorators";
+import { UpperCasePipe } from "./pipes/upper-case.pipe";
 
 @Controller()
+@UsePipes(UpperCasePipe)
 export class AppController {
   @Get()
   getHello(@Query("test") value: string) {

@@ -1,8 +1,9 @@
 import { container } from "../container";
 import { Express, Request, Response } from "express";
-import { ArgumentMetadata, Constructor, Route } from "../types";
+import { ArgumentMetadata, Type, Route } from "../types";
+import { runPipes } from "./runPipes";
 
-export function registerRoutes(app: Express, controller: Constructor) {
+export async function registerRoutes(app: Express, controller: Type) {
   const prefix = Reflect.getMetadata("controller:prefix", controller) || "";
   const routes: Route[] =
     Reflect.getMetadata("controller:routes", controller) || [];
@@ -19,7 +20,7 @@ export function registerRoutes(app: Express, controller: Constructor) {
       Reflect.getMetadata("mini:params", controller.prototype, route.handler) ||
       [];
 
-    app[route.method](fullPath, (req: Request, res: Response) => {
+    app[route.method](fullPath, async (req: Request, res: Response) => {
       const args: any[] = [];
 
       for (
@@ -33,19 +34,27 @@ export function registerRoutes(app: Express, controller: Constructor) {
           continue;
         }
 
+        let rawValue;
         switch (meta.type) {
           case "query":
-            args[i] = meta.data ? req.query[meta.data] : req.query;
+            rawValue = meta.data ? req.query[meta.data] : req.query;
             break;
           case "param":
-            args[i] = meta.data ? req.params[meta.data] : req.params;
+            rawValue = meta.data ? req.params[meta.data] : req.params;
             break;
           case "body":
-            args[i] = req.body;
+            rawValue = req.body;
             break;
           default:
-            args[i] = undefined;
+            rawValue = undefined;
         }
+
+        args[i] = await runPipes(
+          controller,
+          instance[route.handler],
+          rawValue,
+          meta
+        );
       }
 
       const result = instance[route.handler](...args);

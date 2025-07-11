@@ -5,3 +5,4 @@ export * from "./module.decorator";
 export * from "./param.decorator";
 export * from "./route.decorator";
 export * from "./use-pipes.decorator";
+export * from "./use-guards.decorator";

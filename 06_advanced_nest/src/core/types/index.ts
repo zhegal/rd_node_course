@@ -6,5 +6,7 @@ export * from "./param.type";
 export * from "./route.type";
 export * from "./pipe-transform.type";
 export * from "./pipes.type";
+export * from "./execution-context.type";
 
 export * from "./type.interface";
+export * from "./can-activate.interface";

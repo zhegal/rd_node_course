@@ -1,6 +1,12 @@
 import { container } from "../container";
 import { Express, Request, Response } from "express";
-import { ArgumentMetadata, Type, Route } from "../types";
+import {
+  ArgumentMetadata,
+  Type,
+  Route,
+  CanActivate,
+  ExecutionContext,
+} from "../types";
 import { runPipes } from "./runPipes";
 import { HttpException } from "../exceptions";
 
@@ -27,6 +33,30 @@ export async function registerRoutes(
       const args: any[] = [];
 
       try {
+        const classGuards: any[] =
+          Reflect.getMetadata("guards", controller) ?? [];
+        const methodGuards: any[] =
+          Reflect.getMetadata("guards", controller.prototype, route.handler) ??
+          [];
+        const guards = [...classGuards, ...methodGuards];
+
+        for (const guard of guards) {
+          const guardInstance = container.resolve(guard) as CanActivate;
+
+          if (typeof guardInstance.canActivate !== "function") {
+            throw new Error(
+              `Guard ${guard.name} must implement canActivate(context)`
+            );
+          }
+
+          const context: ExecutionContext = { req, res };
+          const canActivate = await guardInstance.canActivate(context);
+          if (!canActivate) {
+            res.status(403).json({ statusCode: 403, message: "Forbidden" });
+            return;
+          }
+        }
+
         for (
           let i = 0;
           i < Math.max(...paramMeta.map((p) => p.index), 0) + 1;
@@ -38,7 +68,7 @@ export async function registerRoutes(
             continue;
           }
 
-          let rawValue;
+          let rawValue: unknown;
           switch (meta.type) {
             case "query":
               rawValue = meta.data ? req.query[meta.data] : req.query;

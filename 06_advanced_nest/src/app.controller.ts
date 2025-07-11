@@ -6,8 +6,10 @@ import {
   Param,
   Post,
   Query,
+  UseGuards,
 } from "./core/decorators";
 import { ZodValidationPipe } from "./pipes";
+import { AuthGuard } from "./core/guards";
 
 const userSchema = z.object({
   name: z.string().min(3),
@@ -22,6 +24,7 @@ export class AppController {
   }
 
   @Post()
+  @UseGuards(AuthGuard)
   create(@Body(new ZodValidationPipe(userSchema)) body: any) {
     return { message: "created", body };
   }

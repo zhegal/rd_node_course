@@ -10,3 +10,4 @@ export * from "./execution-context.type";
 
 export * from "./type.interface";
 export * from "./can-activate.interface";
+export * from "./exception-filter.interface";

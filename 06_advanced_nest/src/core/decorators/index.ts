@@ -6,3 +6,4 @@ export * from "./param.decorator";
 export * from "./route.decorator";
 export * from "./use-pipes.decorator";
 export * from "./use-guards.decorator";
+export * from "./use-filters.decorator";

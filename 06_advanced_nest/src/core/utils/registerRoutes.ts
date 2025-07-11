@@ -6,6 +6,7 @@ import {
   Route,
   CanActivate,
   ExecutionContext,
+  ExceptionFilter,
 } from "../types";
 import { runPipes } from "./runPipes";
 import { HttpException } from "../exceptions";
@@ -31,7 +32,6 @@ export async function registerRoutes(
 
     app[route.method](fullPath, async (req: Request, res: Response) => {
       const args: any[] = [];
-
       try {
         const classGuards: any[] =
           Reflect.getMetadata("guards", controller) ?? [];
@@ -42,7 +42,6 @@ export async function registerRoutes(
 
         for (const guard of guards) {
           const guardInstance = container.resolve(guard) as CanActivate;
-
           if (typeof guardInstance.canActivate !== "function") {
             throw new Error(
               `Guard ${guard.name} must implement canActivate(context)`
@@ -95,18 +94,24 @@ export async function registerRoutes(
         const result = await instance[route.handler](...args);
         res.send(result);
       } catch (err: any) {
-        if (err instanceof HttpException) {
-          res.status(err.status).json({
-            statusCode: err.status,
-            message: err.message,
-            error: err.name,
-          });
-        } else {
-          res.status(500).json({
-            statusCode: 500,
-            message: "Internal Server Error",
-          });
+        const filters: any[] = Reflect.getMetadata("filters", controller) ?? [];
+
+        for (const filter of filters) {
+          const filterInstance = container.resolve(filter) as ExceptionFilter;
+          if (typeof filterInstance.catch === "function") {
+            await filterInstance.catch(err, {
+              req,
+              res,
+              error: err,
+            });
+            return;
+          }
         }
+
+        res.status(500).json({
+          statusCode: 500,
+          message: "Internal Server Error",
+        });
       }
     });
 

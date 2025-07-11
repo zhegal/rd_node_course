@@ -1,11 +1,12 @@
 {
-  "name": "06_advanced_nest",
+  "name": "mini-nest",
   "version": "1.0.0",
   "description": "Mini Nest",
-  "main": "index.js",
   "scripts": {
     "dev": "nodemon",
-    "build": "tsc -p tsconfig.json"
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc -p tsconfig.json && node rewrite-imports.js",
+    "start": "npm run build && node ./dist/main.js"
   },
   "keywords": [],
   "author": "Evgeniy Galkovskiy",

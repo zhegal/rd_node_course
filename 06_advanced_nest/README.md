@@ -31,4 +31,3 @@ node dist/main.js
 - `npm run dev` - запускає проект у dev-режимі за допомогою nodemon
 - `npm run build` — видаляє `dist`, компілює TypeScript і виправляє імпорти
 - `npm run clean` — очищує `dist`
-

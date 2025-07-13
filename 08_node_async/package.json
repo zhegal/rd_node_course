@@ -27,7 +27,8 @@
     "adm-zip": "^0.5.16",
     "multer": "^2.0.1",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "sharp": "^0.34.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

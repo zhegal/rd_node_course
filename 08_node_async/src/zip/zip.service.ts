@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { extractZip } from './utils/extract';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class ZipService {
   async sendArchive(file: Express.Multer.File) {
+    const filesList = await extractZip(file.path);
+    await unlink(file.path);
+
     return {
-      message: 'ZIP file saved to tmp directory',
-      originalName: file.originalname,
-      savedPath: file.path,
-      size: file.size,
+      count: filesList.length,
+      files: filesList,
     };
   }
 }

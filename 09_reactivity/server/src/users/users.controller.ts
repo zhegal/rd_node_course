@@ -2,19 +2,19 @@ import { Body, Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors,
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import {UserDTO} from "../dto";
-import {Store} from "../store/store";
+import { UsersService } from './users.service';
 
 @Controller('/api/users')
 export class UsersController {
-  constructor(private store: Store) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('icon'))
-  createUser(
+  async createUser(
     @Body('name') name: string,
     @UploadedFile() icon?: Express.Multer.File,
-  ): UserDTO {
-    throw new ForbiddenException('Not implemented yet');
+  ): Promise<void> {
+    return await this.usersService.createUser(name, icon?.buffer);
   }
 
   @Get()

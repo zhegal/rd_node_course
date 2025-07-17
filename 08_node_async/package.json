@@ -1,8 +1,8 @@
 {
-  "name": "08_node_async",
+  "name": "mini-zipper",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Mini Zipper - Node JS (Nest) task with worker-threads",
+  "author": "Evgeniy Galkovskiy",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -25,6 +25,7 @@
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "adm-zip": "^0.5.16",
+    "async-mutex": "^0.5.0",
     "multer": "^2.0.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",

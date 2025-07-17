@@ -5,14 +5,17 @@ import { join, extname } from 'path';
 
 const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
 
-export async function extractZip(zipPath: string): Promise<string[]> {
+export async function extractZip(
+  zipPath: string,
+): Promise<{ imagePaths: string[]; tempDir: string }> {
   const tempDir = await fs.mkdtemp(join(tmpdir(), 'unzip-'));
   const zip = new AdmZip(zipPath);
   zip.extractAllTo(tempDir, true);
 
   const imagePaths: string[] = [];
   await filesFiltering(tempDir, imagePaths);
-  return imagePaths;
+
+  return { imagePaths, tempDir };
 }
 
 async function filesFiltering(

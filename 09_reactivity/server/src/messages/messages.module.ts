@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import {MessagesController} from "./messages.controller";
+import { Module } from "@nestjs/common";
+import { MessagesController } from "./messages.controller";
 // import {FileStore} from "../store/file-store";
 
 @Module({

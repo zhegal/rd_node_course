@@ -16,6 +16,7 @@ import { Store } from "../store/store";
 import { join } from "path";
 import { existsSync } from "fs";
 import { getIconPath } from "./utils/getIconPath";
+import { randomUUID } from "crypto";
 
 const ICONS_DIR = join(process.cwd(), "public/icons");
 
@@ -33,14 +34,20 @@ export class UsersController {
       throw new BadRequestException("Invalid name");
     }
 
-    const existing = this.store.find<UserDTO>("users", (u) => u.name === name);
-    if (existing) {
-      throw new BadRequestException("User with this name already exists");
-    }
+    const users = this.store.list<UserDTO>("users");
+    const existing = users.find((u) => u.name === name);
 
     const iconUrl = getIconPath(icon, name);
-    const user = await this.store.add<UserDTO>("users", { name, iconUrl });
-    return user;
+    const updated: UserDTO = {
+      id: existing?.id || randomUUID(),
+      name,
+      iconUrl,
+    };
+
+    const filtered = users.filter((user) => user.name !== name);
+    await this.store.set<UserDTO>("users", [...filtered, updated]);
+
+    return updated;
   }
 
   @Get()

@@ -16,7 +16,7 @@ import { memoryStorage } from "multer";
     UsersModule,
     ChatsModule,
     MessagesModule,
-    // WsModule,
+    WsModule,
   ],
 })
 export class AppModule {}

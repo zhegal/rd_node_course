@@ -4,18 +4,22 @@ import {
   OnGatewayConnection,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from "@nestjs/websockets";
-import { Socket } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { Subject } from "rxjs";
 import { filter } from "rxjs/operators";
 import Redis from "ioredis";
 import { v4 as uuid } from "uuid";
 import { ForbiddenException, OnModuleDestroy } from "@nestjs/common";
 import { Store } from "../store/store";
+import { ChatDTO, MessageDTO } from "src/dto";
 
 const INSTANCE_ID = uuid(); // 🎯 унікальний для кожної репліки
 @WebSocketGateway({ path: "/ws", cors: true })
 export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
+  @WebSocketServer()
+  private server!: Server;
   private readonly sub: Redis;
   private event$ = new Subject<{ ev: string; data: any; meta?: any }>();
 
@@ -59,7 +63,24 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
-    throw new ForbiddenException("Not implemented yet");
+    const user = client.data.user as string;
+    const chat = this.store.find<ChatDTO>(
+      "chats",
+      (chat) => chat.id === body.chatId
+    );
+
+    if (!chat) throw new ForbiddenException("Chat not found");
+    if (!chat.members.includes(user)) {
+      throw new ForbiddenException("You are not a member of this chat");
+    }
+
+    client.join(chat.id);
+
+    this.event$.next({
+      ev: "join",
+      data: { chatId: chat.id },
+      meta: { local: true },
+    });
   }
 
   @SubscribeMessage("leave")
@@ -67,7 +88,24 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
-    throw new ForbiddenException("Not implemented yet");
+    const user = client.data.user as string;
+    const chat = this.store.find<ChatDTO>(
+      "chats",
+      (chat) => chat.id === body.chatId
+    );
+
+    if (!chat) throw new ForbiddenException("Chat not found");
+    if (!chat.members.includes(user)) {
+      throw new ForbiddenException("You are not a member of this chat");
+    }
+
+    client.leave(chat.id);
+
+    this.event$.next({
+      ev: "leave",
+      data: { chatId: chat.id },
+      meta: { local: true },
+    });
   }
 
   @SubscribeMessage("send")
@@ -75,7 +113,38 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; text: string }
   ) {
-    throw new ForbiddenException("Not implemented yet");
+    const author = client.data.user as string;
+    if (!author || !body.chatId || !body.text?.trim()) {
+      throw new ForbiddenException("Invalid message payload");
+    }
+    const chat = this.store.find<ChatDTO>("chats", (c) => c.id === body.chatId);
+    if (!chat) throw new ForbiddenException("Chat not found");
+    if (!chat.members.includes(author)) {
+      throw new ForbiddenException("You are not a member of this chat");
+    }
+
+    const message: MessageDTO = {
+      id: uuid(),
+      chatId: chat.id,
+      author,
+      text: body.text.trim(),
+      sentAt: new Date().toISOString(),
+    };
+
+    this.store.add<MessageDTO>("messages", message);
+    const updated: ChatDTO = {
+      ...chat,
+      updatedAt: message.sentAt,
+    };
+    const all = this.store.list<ChatDTO>("chats");
+    const next = all.map((c) => (c.id === chat.id ? updated : c));
+    this.store.set("chats", next);
+    this.server.to(chat.id).emit("message", message);
+    this.event$.next({
+      ev: "message",
+      data: message,
+      meta: { local: true },
+    });
   }
 
   @SubscribeMessage("typing")
@@ -83,6 +152,31 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; isTyping: boolean }
   ) {
-    throw new ForbiddenException("Not implemented yet");
+    const user = client.data.user as string;
+    const chat = this.store.find<ChatDTO>(
+      "chats",
+      (chat) => chat.id === body.chatId
+    );
+
+    if (!chat) throw new ForbiddenException("Chat not found");
+    if (!chat.members.includes(user)) {
+      throw new ForbiddenException("You are not a member of this chat");
+    }
+
+    client.to(chat.id).emit("typing", {
+      chatId: chat.id,
+      user,
+      isTyping: body.isTyping,
+    });
+
+    this.event$.next({
+      ev: "typing",
+      data: {
+        chatId: chat.id,
+        user,
+        isTyping: body.isTyping,
+      },
+      meta: { local: true },
+    });
   }
 }

@@ -22,7 +22,7 @@ export class UsersService {
 
   async getUsers(params: { cursor?: string; limit?: number }): Promise<{
     items: UserDTO[];
-    nextCursor?: string;
+    total: number;
   }> {
     const allUsers = await this.store.get<UserDTO>("users");
 
@@ -37,9 +37,10 @@ export class UsersService {
       : sorted;
 
     const items = filtered.slice(0, limit);
-    const nextCursor =
-      items.length === limit ? items[items.length - 1].createdAt : undefined;
 
-    return { items, nextCursor };
+    return {
+      items,
+      total: allUsers.length,
+    };
   }
 }

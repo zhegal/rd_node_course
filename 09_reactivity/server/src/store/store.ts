@@ -35,6 +35,11 @@ export class Store implements OnModuleInit {
     return full;
   }
 
+  async set<T>(key: string, list: T[]): Promise<void> {
+    this.data[key] = list;
+    await this.save();
+  }
+
   list<T>(key: string): T[] {
     return (this.data[key] as T[]) || [];
   }

@@ -14,9 +14,9 @@ import { memoryStorage } from "multer";
       url: process.env.REDIS_URL ?? "redis://localhost:6379",
     }),
     UsersModule,
-    ChatsModule,
-    MessagesModule,
-    WsModule,
+    // ChatsModule,
+    // MessagesModule,
+    // WsModule,
   ],
 })
 export class AppModule {}

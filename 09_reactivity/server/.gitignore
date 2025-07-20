@@ -1,0 +1,7 @@
+/public/icons/*
+!/public/icons/default.png
+/data/store.json
+
+node_modules
+dist
+*.log

@@ -2,7 +2,6 @@ export interface UserDTO {
   id: string;
   name: string;
   iconUrl: string;
-  createdAt: string;
 }
 
 export interface ChatDTO {

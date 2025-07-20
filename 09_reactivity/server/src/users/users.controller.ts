@@ -1,51 +1,29 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  UploadedFile,
-  UseInterceptors,
-  ForbiddenException,
-  Query,
-} from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { UserDTO } from "../dto";
-import { UsersService } from "./users.service";
+import { Body, Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors, ForbiddenException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
+import {UserDTO} from "../dto";
+import {Store} from "../store/store";
 
-@Controller("/api/users")
+@Controller('/api/users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private store: Store) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor("icon"))
-  async createUser(
-    @Body("name") name: string,
-    @UploadedFile() icon?: Express.Multer.File
-  ): Promise<UserDTO> {
-    if (!name || name.length < 3) {
-      throw new ForbiddenException("Invalid or missing name field");
-    }
-
-    if (icon) {
-      const allowedTypes = ["image/png", "image/jpeg"];
-      if (!allowedTypes.includes(icon.mimetype)) {
-        throw new ForbiddenException(
-          "Invalid file type. Only PNG and JPG are allowed"
-        );
-      }
-    }
-
-    return await this.usersService.createUser(name, icon);
+  @UseInterceptors(FileInterceptor('icon'))
+  createUser(
+    @Body('name') name: string,
+    @UploadedFile() icon?: Express.Multer.File,
+  ): UserDTO {
+    throw new ForbiddenException('Not implemented yet');
   }
 
   @Get()
-  async list(
-    @Query("cursor") cursor?: string,
-    @Query("limit") limit?: string
-  ): Promise<{ items: UserDTO[]; nextCursor?: string }> {
-    return await this.usersService.getUsers({
-      cursor,
-      limit: limit ? Number(limit) : undefined,
-    });
+  list(): { items: UserDTO[]; total: number } {
+    throw new ForbiddenException('Not implemented yet');
+  }
+
+  @Get('icons/:iconPath')
+  async icon(@Param('iconPath') iconPath: string, @Res() res: Response) {
+    throw new ForbiddenException('Not implemented yet');
   }
 }

@@ -52,6 +52,14 @@ export class ChatsController {
     };
 
     await this.store.add<ChatDTO>("chats", chat);
+    await this.redis.publish(
+      "chat-events",
+      JSON.stringify({
+        ev: "chatCreated",
+        data: chat,
+        src: "http-api",
+      })
+    );
     return chat;
   }
 
@@ -107,6 +115,17 @@ export class ChatsController {
     const all = this.store.list<ChatDTO>("chats");
     const updatedList = all.map((chat) => (chat.id === id ? updated : chat));
     await this.store.set("chats", updatedList);
+    await this.redis.publish(
+      "chat-events",
+      JSON.stringify({
+        ev: "membersUpdated",
+        data: {
+          chatId: updated.id,
+          members: updated.members,
+        },
+        src: "http-api",
+      })
+    );
     return updated;
   }
 

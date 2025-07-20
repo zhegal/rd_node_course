@@ -7,7 +7,7 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { Subject } from "rxjs";
+import { Subject, Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
 import Redis from "ioredis";
 import { v4 as uuid } from "uuid";
@@ -22,6 +22,7 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
   private server!: Server;
   private readonly sub: Redis;
   private event$ = new Subject<{ ev: string; data: any; meta?: any }>();
+  private subscriptions = new Map<Socket, Subscription>();
 
   constructor(private store: Store, private readonly redis: Redis) {
     this.sub = this.redis.duplicate();
@@ -55,7 +56,24 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     if (!user) return client.disconnect(true);
     client.data.user = user;
 
-    // forward broadcast events belonging to this user
+    const sub = this.event$
+      .pipe(
+        filter(
+          (e) =>
+            ["chatCreated", "membersUpdated"].includes(e.ev) &&
+            e.data?.members?.includes?.(client.data.user)
+        )
+      )
+      .subscribe((e) => {
+        client.emit(e.ev, e.data);
+      });
+
+    this.subscriptions.set(client, sub);
+  }
+
+  handleDisconnect(client: Socket) {
+    this.subscriptions.get(client)?.unsubscribe();
+    this.subscriptions.delete(client);
   }
 
   @SubscribeMessage("join")

@@ -10,13 +10,35 @@ export class UsersService {
   async createUser(name: string, icon?: Express.Multer.File): Promise<UserDTO> {
     const id = crypto.randomUUID();
     const iconUrl: string = icon ? await saveIcon(name, icon) : "";
-    const user: UserDTO = { id, name, iconUrl };
+    const user: UserDTO = {
+      id,
+      name,
+      iconUrl,
+      createdAt: new Date().toISOString(),
+    };
     await this.store.push("users", user);
     return user;
   }
 
-  async getUsers(): Promise<{ items: UserDTO[]; total: number }> {
-    const users = await this.store.get<UserDTO>("users");
-    return { items: users, total: users.length };
+  async getUsers(params: { cursor?: string; limit?: number }): Promise<{
+    items: UserDTO[];
+    nextCursor?: string;
+  }> {
+    const allUsers = await this.store.get<UserDTO>("users");
+    const sorted = allUsers.sort((a, b) =>
+      b.createdAt.localeCompare(a.createdAt)
+    );
+
+    const { cursor, limit = 20 } = params;
+
+    const filtered = cursor
+      ? sorted.filter((u) => u.createdAt < cursor)
+      : sorted;
+
+    const items = filtered.slice(0, limit);
+    const nextCursor =
+      items.length === limit ? items[items.length - 1].createdAt : undefined;
+
+    return { items, nextCursor };
   }
 }

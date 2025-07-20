@@ -6,6 +6,7 @@ import {
   UploadedFile,
   UseInterceptors,
   ForbiddenException,
+  Query,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { UserDTO } from "../dto";
@@ -33,11 +34,18 @@ export class UsersController {
         );
       }
     }
+
     return await this.usersService.createUser(name, icon);
   }
 
   @Get()
-  async list(): Promise<{ items: UserDTO[]; total: number }> {
-    return await this.usersService.getUsers();
+  async list(
+    @Query("cursor") cursor?: string,
+    @Query("limit") limit?: string
+  ): Promise<{ items: UserDTO[]; nextCursor?: string }> {
+    return await this.usersService.getUsers({
+      cursor,
+      limit: limit ? Number(limit) : undefined,
+    });
   }
 }

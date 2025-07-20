@@ -9,15 +9,14 @@ export class UsersService {
 
   async createUser(name: string, icon?: Express.Multer.File): Promise<UserDTO> {
     const id = crypto.randomUUID();
-    const iconUrl: string = icon ? await saveIcon(name, icon) : '';
-    return {
-      id,
-      name,
-      iconUrl,
-    };
+    const iconUrl: string = icon ? await saveIcon(name, icon) : "";
+    const user: UserDTO = { id, name, iconUrl };
+    await this.store.push("users", user);
+    return user;
   }
 
-  async getUsers() {}
-
-  resolveIconPath() {}
+  async getUsers(): Promise<{ items: UserDTO[]; total: number }> {
+    const users = await this.store.get<UserDTO>("users");
+    return { items: users, total: users.length };
+  }
 }

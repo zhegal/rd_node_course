@@ -2,15 +2,12 @@ import {
   Body,
   Controller,
   Get,
-  Param,
   Post,
-  Res,
   UploadedFile,
   UseInterceptors,
   ForbiddenException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { Response } from "express";
 import { UserDTO } from "../dto";
 import { UsersService } from "./users.service";
 
@@ -40,7 +37,7 @@ export class UsersController {
   }
 
   @Get()
-  list(): { items: UserDTO[]; total: number } {
-    throw new ForbiddenException("Not implemented yet");
+  async list(): Promise<{ items: UserDTO[]; total: number }> {
+    return await this.usersService.getUsers();
   }
 }

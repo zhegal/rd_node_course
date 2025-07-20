@@ -1,5 +1,5 @@
-import { DynamicModule, Global, Module } from '@nestjs/common';
-import Redis, {RedisOptions} from 'ioredis';
+import { DynamicModule, Global, Module } from "@nestjs/common";
+import Redis, { RedisOptions } from "ioredis";
 
 @Global()
 @Module({})

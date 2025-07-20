@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import {UsersController} from "./users.controller";
-import {Store} from "../store/store";
+import { Module } from "@nestjs/common";
+import { UsersController } from "./users.controller";
+import { Store } from "../store/store";
 
 @Module({
   controllers: [UsersController],

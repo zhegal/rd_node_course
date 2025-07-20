@@ -23,17 +23,24 @@ export class UsersController {
   async createUser(
     @Body("name") name: string,
     @UploadedFile() icon?: Express.Multer.File
-  ): Promise<void> {
-    return await this.usersService.createUser(name, icon?.buffer);
+  ): Promise<UserDTO> {
+    if (!name || name.length < 3) {
+      throw new ForbiddenException("Invalid or missing name field");
+    }
+
+    if (icon) {
+      const allowedTypes = ["image/png", "image/jpeg"];
+      if (!allowedTypes.includes(icon.mimetype)) {
+        throw new ForbiddenException(
+          "Invalid file type. Only PNG and JPG are allowed"
+        );
+      }
+    }
+    return await this.usersService.createUser(name, icon);
   }
 
   @Get()
   list(): { items: UserDTO[]; total: number } {
-    throw new ForbiddenException("Not implemented yet");
-  }
-
-  @Get("icons/:iconPath")
-  async icon(@Param("iconPath") iconPath: string, @Res() res: Response) {
     throw new ForbiddenException("Not implemented yet");
   }
 }

@@ -25,9 +25,10 @@ export class UsersService {
     nextCursor?: string;
   }> {
     const allUsers = await this.store.get<UserDTO>("users");
-    const sorted = allUsers.sort((a, b) =>
-      b.createdAt.localeCompare(a.createdAt)
-    );
+
+    const sorted = (allUsers ?? [])
+      .filter((u): u is UserDTO => typeof u.createdAt === "string")
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
     const { cursor, limit = 20 } = params;
 

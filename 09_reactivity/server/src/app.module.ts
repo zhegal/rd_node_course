@@ -15,7 +15,7 @@ import { memoryStorage } from "multer";
     }),
     UsersModule,
     ChatsModule,
-    // MessagesModule,
+    MessagesModule,
     // WsModule,
   ],
 })

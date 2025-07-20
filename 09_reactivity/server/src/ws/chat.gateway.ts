@@ -127,7 +127,7 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
   }
 
   @SubscribeMessage("send")
-  onSend(
+  async onSend(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; text: string }
   ) {
@@ -154,7 +154,7 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
       ...chat,
       updatedAt: message.sentAt,
     };
-    const all = this.store.list<ChatDTO>("chats");
+    const all = await this.store.list<ChatDTO>("chats");
     const next = all.map((c) => (c.id === chat.id ? updated : c));
     this.store.set("chats", next);
     this.server.to(chat.id).emit("message", message);

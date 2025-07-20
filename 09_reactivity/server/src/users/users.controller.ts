@@ -34,8 +34,8 @@ export class UsersController {
       throw new BadRequestException("Invalid name");
     }
 
-    const users = this.store.list<UserDTO>("users");
-    const existing = users.find((u) => u.name === name);
+    const users = await this.store.list<UserDTO>("users");
+    const existing = users.find((user) => user.name === name);
 
     const iconUrl = getIconPath(icon, name);
     const updated: UserDTO = {
@@ -51,8 +51,8 @@ export class UsersController {
   }
 
   @Get()
-  list(): { items: UserDTO[]; total: number } {
-    const items = this.store.list<UserDTO>("users");
+  async list(): Promise<{ items: UserDTO[]; total: number }> {
+    const items = await this.store.list<UserDTO>("users");
     return { items, total: items.length };
   }
 

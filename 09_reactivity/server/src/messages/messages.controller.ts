@@ -19,12 +19,12 @@ export class MessagesController {
   constructor(private store: Store) {}
 
   @Get()
-  list(
+  async list(
     @Headers("X-User") user: string,
     @Param("id") chatId: string,
     @Query("cursor") cursor?: string,
     @Query("limit") limitRaw = "30"
-  ): { items: MessageDTO[]; nextCursor?: string } {
+  ): Promise<{ items: MessageDTO[]; nextCursor?: string }> {
     if (!user) {
       throw new BadRequestException("Missing X-User");
     }
@@ -40,8 +40,8 @@ export class MessagesController {
     }
 
     const limit = Math.max(1, Math.min(parseInt(limitRaw), 100));
-    const allMessages = this.store
-      .list<MessageDTO>("messages")
+    const msgList = await this.store.list<MessageDTO>("messages");
+    const allMessages = msgList
       .filter((msg) => msg.chatId === chatId)
       .filter((msg) => !cursor || msg.sentAt < cursor)
       .sort((a, b) => b.sentAt.localeCompare(a.sentAt));

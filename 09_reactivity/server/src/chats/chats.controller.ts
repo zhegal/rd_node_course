@@ -30,7 +30,7 @@ export class ChatsController {
       throw new BadRequestException("Missing members or creator");
     }
 
-    const users = this.store.list<UserDTO>("users");
+    const users = await this.store.list<UserDTO>("users");
     const nameSet = new Set(users.map((u) => u.name));
 
     const uniqueNames = Array.from(new Set([creator, ...body.members]));
@@ -64,13 +64,13 @@ export class ChatsController {
   }
 
   @Get()
-  list(@Headers("X-User") user: string) {
+  async list(@Headers("X-User") user: string) {
     if (!user) {
       throw new BadRequestException("Missing X-User header");
     }
 
-    const chats = this.store
-      .list<ChatDTO>("chats")
+    const allChats = await this.store.list<ChatDTO>("chats");
+    const chats = allChats
       .filter((chat) => chat.members.includes(user))
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
@@ -96,7 +96,7 @@ export class ChatsController {
     if (!chat.members.includes(actor)) {
       throw new ForbiddenException("You are not a member of this chat");
     }
-    const users = this.store.list<UserDTO>("users");
+    const users = await this.store.list<UserDTO>("users");
     const nameSet = new Set(users.map((u) => u.name));
     const toAdd = (dto.add || []).filter((name) => nameSet.has(name));
     const toRemove = new Set(dto.remove || []);
@@ -112,7 +112,7 @@ export class ChatsController {
       updatedAt: new Date().toISOString(),
     };
 
-    const all = this.store.list<ChatDTO>("chats");
+    const all = await this.store.list<ChatDTO>("chats");
     const updatedList = all.map((chat) => (chat.id === id ? updated : chat));
     await this.store.set("chats", updatedList);
     await this.redis.publish(
@@ -130,7 +130,7 @@ export class ChatsController {
   }
 
   @Delete(":id")
-  delete(@Headers("X-User") admin: string, @Param("id") id: string) {
+  async delete(@Headers("X-User") admin: string, @Param("id") id: string) {
     if (!admin) {
       throw new BadRequestException("Missing X-User header");
     }
@@ -141,9 +141,8 @@ export class ChatsController {
     if (!chat.members.includes(admin)) {
       throw new ForbiddenException("You are not a member of this chat");
     }
-    const updated = this.store
-      .list<ChatDTO>("chats")
-      .filter((chat) => chat.id !== id);
+    const allChats = await this.store.list<ChatDTO>("chats");
+    const updated = allChats.filter((chat) => chat.id !== id);
     this.store.set("chats", updated);
   }
 }

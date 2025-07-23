@@ -40,7 +40,9 @@ export class Store implements OnModuleInit {
     await this.save();
   }
 
-  list<T>(key: string): T[] {
+  async list<T>(key: string): Promise<T[]> {
+    const raw = await readFile(STORE_FILE, "utf-8");
+    this.data = JSON.parse(raw);
     return (this.data[key] as T[]) || [];
   }
 

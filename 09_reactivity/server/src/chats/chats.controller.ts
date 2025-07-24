@@ -27,20 +27,19 @@ export class ChatsController {
     if (!creator || !Array.isArray(body.members) || body.members.length < 1) {
       throw new ForbiddenException("Invalid chat members");
     }
-
     const members = Array.from(new Set([creator, ...body.members]));
     const name = createChatName({ name: body.name, members });
-
     const chat: ChatDTO = {
       id: randomUUID(),
       name,
       members,
       updatedAt: new Date().toISOString(),
     };
-
     await this.store.add("chats", chat);
-    await this.redis.publish("chatCreated", JSON.stringify(chat));
-
+    await this.redis.publish(
+      "chat-events",
+      JSON.stringify({ ev: "chatCreated", data: chat })
+    );
     return chat;
   }
 
@@ -59,36 +58,33 @@ export class ChatsController {
     @Headers("X-User") actor: string,
     @Param("id") id: string,
     @Body() dto: { add?: string[]; remove?: string[] }
-  ): Promise<ChatDTO> {
+  ): Promise<ChatDTO | void> {
     if (!actor) throw new ForbiddenException("Missing X-User");
-
     const chats = await this.store.list<ChatDTO>("chats");
     const chatIndex = chats.findIndex((c) => c.id === id);
     if (chatIndex === -1) throw new ForbiddenException("Chat not found");
-
     const chat = chats[chatIndex];
-
-    if (!chat.members.includes(actor)) {
-      throw new ForbiddenException("Not a member of this chat");
-    }
-
+    const wasMember = chat.members.includes(actor);
+    if (!wasMember) throw new ForbiddenException("Not a member of this chat");
     const members = new Set(chat.members);
     dto.add?.forEach((u) => members.add(u));
     dto.remove?.forEach((u) => members.delete(u));
-
+    const updatedMembers = Array.from(members);
     const updated: ChatDTO = {
       ...chat,
-      members: Array.from(members),
+      members: updatedMembers,
       updatedAt: new Date().toISOString(),
     };
-
     chats[chatIndex] = updated;
     await this.store.set("chats", chats);
     await this.redis.publish(
-      "membersUpdated",
-      JSON.stringify({ chatId: updated.id, members: updated.members })
+      "chat-events",
+      JSON.stringify({
+        ev: "membersUpdated",
+        data: { chatId: updated.id, members: updated.members },
+      })
     );
-
+    if (!updatedMembers.includes(actor)) return;
     return updated;
   }
 
@@ -98,15 +94,12 @@ export class ChatsController {
     @Param("id") id: string
   ): Promise<void> {
     if (!admin) throw new ForbiddenException("Missing X-User");
-
     const chats = await this.store.list<ChatDTO>("chats");
     const chat = chats.find((c) => c.id === id);
-
     if (!chat) throw new ForbiddenException("Chat not found");
     if (!chat.members.includes(admin)) {
       throw new ForbiddenException("Not a member of this chat");
     }
-
     const filtered = chats.filter((c) => c.id !== id);
     await this.store.set("chats", filtered);
   }

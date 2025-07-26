@@ -49,6 +49,30 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
         socket.emit("message", e.data);
       }
     });
+
+    this.event$
+      .pipe(filter((e) => e.ev === "membersUpdated"))
+      .subscribe((e) => {
+        const { chatId, members } = e.data as {
+          chatId: string;
+          members: string[];
+        };
+        const sockets = this.chatMembers.get(chatId);
+        if (!sockets) return;
+        for (const socket of sockets) {
+          socket.emit("membersUpdated", { chatId, members });
+        }
+        for (const socket of sockets) {
+          const user = socket.data.user;
+          if (!members.includes(user)) {
+            sockets.delete(socket);
+            this.socketChats.delete(socket);
+          }
+        }
+        if (sockets.size === 0) {
+          this.chatMembers.delete(chatId);
+        }
+      });
   }
 
   onModuleDestroy() {

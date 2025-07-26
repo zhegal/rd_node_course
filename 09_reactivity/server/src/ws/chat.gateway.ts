@@ -18,6 +18,8 @@ const INSTANCE_ID = uuid(); // 🎯 унікальний для кожної р�
 export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
   private readonly sub: Redis;
   private event$ = new Subject<{ ev: string; data: any; meta?: any }>();
+  private chatMembers = new Map<string, Set<Socket>>();
+  private socketChats = new Map<Socket, string>();
 
   constructor(private store: Store, private readonly redis: Redis) {
     this.sub = this.redis.duplicate();
@@ -59,7 +61,12 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
-    console.log("join!!!");
+    const { chatId } = body;
+    if (!this.chatMembers.get(chatId)) {
+      this.chatMembers.set(chatId, new Set());
+    }
+    this.chatMembers.get(chatId)?.add(client);
+    this.socketChats.set(client, chatId);
   }
 
   @SubscribeMessage("leave")
@@ -83,6 +90,8 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; isTyping: boolean }
   ) {
-    console.log("typing");
+    const { chatId, isTyping } = body;
+    const sockets = this.chatMembers.get(chatId);
+    console.log(sockets);
   }
 }

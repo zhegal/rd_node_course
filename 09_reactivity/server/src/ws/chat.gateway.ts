@@ -18,6 +18,8 @@ const INSTANCE_ID = uuid();
 export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
   private readonly sub: Redis;
   private event$ = new Subject<{ ev: string; data: any; meta?: any }>();
+  private chatMembers = new Map<string, Set<Socket>>();
+  private socketChats = new Map<Socket, string>();
 
   constructor(private store: Store, private readonly redis: Redis) {
     this.sub = this.redis.duplicate();
@@ -59,7 +61,12 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
-    throw new ForbiddenException("Not implemented yet");
+    const { chatId } = body;
+    if (!this.chatMembers.has(chatId)) {
+      this.chatMembers.set(chatId, new Set());
+    }
+    this.chatMembers.get(chatId)!.add(client);
+    this.socketChats.set(client, chatId);
   }
 
   @SubscribeMessage("leave")
@@ -67,15 +74,29 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
-    throw new ForbiddenException("Not implemented yet");
+    const { chatId } = body;
+    this.chatMembers.get(chatId)?.delete(client);
+    this.socketChats.delete(client);
   }
 
   @SubscribeMessage("send")
-  onSend(
+  async onSend(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; text: string }
   ) {
-    throw new ForbiddenException("Not implemented yet");
+    const message = {
+      id: uuid(),
+      chatId: body.chatId,
+      author: client.data.user,
+      text: body.text,
+      sentAt: new Date().toISOString(),
+    };
+    await this.store.add("messages", message);
+    this.event$.next({
+      ev: "message",
+      data: message,
+      meta: { local: true },
+    });
   }
 
   @SubscribeMessage("typing")
@@ -83,6 +104,13 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; isTyping: boolean }
   ) {
-    throw new ForbiddenException("Not implemented yet");
+    const { chatId, isTyping } = body;
+    const sockets = this.chatMembers.get(chatId);
+    if (!sockets) return;
+    for (const s of sockets) {
+      if (s !== client) {
+        s.emit("typing", { chatId, isTyping });
+      }
+    }
   }
 }

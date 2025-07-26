@@ -40,6 +40,15 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
           JSON.stringify({ ...e, meta: undefined, src: INSTANCE_ID })
         )
       );
+
+    this.event$.pipe(filter((e) => e.ev === "message")).subscribe((e) => {
+      const { chatId } = e.data;
+      const sockets = this.chatMembers.get(chatId);
+      if (!sockets) return;
+      for (const socket of sockets) {
+        socket.emit("message", e.data);
+      }
+    });
   }
 
   onModuleDestroy() {

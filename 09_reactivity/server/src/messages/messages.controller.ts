@@ -49,7 +49,10 @@ export class MessagesController {
     @Param("id") chatId: string,
     @Body("text") text: string
   ): Promise<MessageDTO> {
-    const chat = this.store.find<ChatDTO>("chats", (c) => c.id === chatId);
+    const chat = this.store.find<ChatDTO>(
+      "chats",
+      (chat) => chat.id === chatId
+    );
     if (!chat || !chat.members.includes(author)) {
       throw new ForbiddenException("Access denied");
     }
@@ -70,11 +73,6 @@ export class MessagesController {
       };
       await this.store.set("chats", chats);
     }
-
-    await this.redis.publish(
-      "chat-events",
-      JSON.stringify({ ev: "message", data: message, src: "http" })
-    );
 
     return message;
   }

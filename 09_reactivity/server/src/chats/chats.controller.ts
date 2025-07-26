@@ -36,10 +36,6 @@ export class ChatsController {
       updatedAt: new Date().toISOString(),
     };
     await this.store.add("chats", chat);
-    await this.redis.publish(
-      "chat-events",
-      JSON.stringify({ ev: "chatCreated", data: chat })
-    );
     return chat;
   }
 
@@ -77,13 +73,6 @@ export class ChatsController {
     };
     chats[chatIndex] = updated;
     await this.store.set("chats", chats);
-    await this.redis.publish(
-      "chat-events",
-      JSON.stringify({
-        ev: "membersUpdated",
-        data: { chatId: updated.id, members: updated.members },
-      })
-    );
     if (!updatedMembers.includes(actor)) return;
     return updated;
   }

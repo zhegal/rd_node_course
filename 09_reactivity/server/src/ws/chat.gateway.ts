@@ -12,23 +12,27 @@ import Redis from "ioredis";
 import { v4 as uuid } from "uuid";
 import { ForbiddenException, OnModuleDestroy } from "@nestjs/common";
 import { Store } from "../store/store";
+import { ChatDTO, MessageDTO } from "../dto";
 
-const INSTANCE_ID = uuid();
+const INSTANCE_ID = uuid(); // 🎯 унікальний для кожної репліки
+
 @WebSocketGateway({ path: "/ws", cors: true })
 export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
   private readonly sub: Redis;
-  private event$ = new Subject<{ ev: string; data: any; meta?: any }>();
+  private event$ = new Subject<{
+    ev: string;
+    data: any;
+    meta?: any;
+    src?: string;
+  }>();
   private chatMembers = new Map<string, Set<Socket>>();
-  private socketChats = new Map<Socket, string>();
 
   constructor(private store: Store, private readonly redis: Redis) {
     this.sub = this.redis.duplicate();
-
     this.sub.subscribe("chat-events");
     this.sub.on("message", (_, raw) => {
       const parsed = JSON.parse(raw);
-      if (parsed.src === INSTANCE_ID) return; // ⬅️ skip own
-      console.log("Received event:", parsed);
+      if (parsed.src === INSTANCE_ID) return;
       this.event$.next(parsed);
     });
 
@@ -37,17 +41,14 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
       .subscribe((e) =>
         this.redis.publish(
           "chat-events",
-          JSON.stringify({ ...e, meta: undefined, src: INSTANCE_ID })
+          JSON.stringify({ ...e, src: INSTANCE_ID, meta: undefined })
         )
       );
 
     this.event$.pipe(filter((e) => e.ev === "message")).subscribe((e) => {
-      const { chatId } = e.data;
-      const sockets = this.chatMembers.get(chatId);
-      if (!sockets) return;
-      for (const socket of sockets) {
-        socket.emit("message", e.data);
-      }
+      const msg = e.data as MessageDTO;
+      const sockets = this.chatMembers.get(msg.chatId);
+      sockets?.forEach((socket) => socket.emit("message", msg));
     });
 
     this.event$
@@ -58,20 +59,9 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
           members: string[];
         };
         const sockets = this.chatMembers.get(chatId);
-        if (!sockets) return;
-        for (const socket of sockets) {
-          socket.emit("membersUpdated", { chatId, members });
-        }
-        for (const socket of sockets) {
-          const user = socket.data.user;
-          if (!members.includes(user)) {
-            sockets.delete(socket);
-            this.socketChats.delete(socket);
-          }
-        }
-        if (sockets.size === 0) {
-          this.chatMembers.delete(chatId);
-        }
+        sockets?.forEach((socket) =>
+          socket.emit("membersUpdated", { chatId, members })
+        );
       });
   }
 
@@ -82,34 +72,49 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
 
   handleConnection(client: Socket) {
     const user = client.handshake.auth?.user as string;
-
     if (!user) return client.disconnect(true);
     client.data.user = user;
-
-    // forward broadcast events belonging to this user
   }
 
   @SubscribeMessage("join")
-  onJoin(
+  async onJoin(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
     const { chatId } = body;
-    if (!this.chatMembers.has(chatId)) {
-      this.chatMembers.set(chatId, new Set());
-    }
-    this.chatMembers.get(chatId)!.add(client);
-    this.socketChats.set(client, chatId);
+    const user = client.data.user as string;
+    const chats = await this.store.list<ChatDTO>("chats");
+    const chat = chats.find((c) => c.id === chatId);
+    if (!chat) throw new ForbiddenException("Chat not found");
+    if (!chat.members.includes(user))
+      throw new ForbiddenException("Not a member");
+    const sockets = this.chatMembers.get(chatId) || new Set<Socket>();
+    sockets.add(client);
+    this.chatMembers.set(chatId, sockets);
+
+    const msgs = await this.store.list<MessageDTO>("messages");
+    msgs
+      .filter((m) => m.chatId === chatId)
+      .forEach((m) => client.emit("message", m));
+
+    this.event$.next({
+      ev: "membersUpdated",
+      data: { chatId, members: chat.members },
+      meta: { local: true },
+    });
   }
 
   @SubscribeMessage("leave")
-  onLeave(
+  async onLeave(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
     const { chatId } = body;
-    this.chatMembers.get(chatId)?.delete(client);
-    this.socketChats.delete(client);
+    const sockets = this.chatMembers.get(chatId);
+    if (sockets) {
+      sockets.delete(client);
+      if (sockets.size === 0) this.chatMembers.delete(chatId);
+    }
   }
 
   @SubscribeMessage("send")
@@ -117,19 +122,16 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; text: string }
   ) {
-    const message = {
+    const { chatId, text } = body;
+    const message: MessageDTO = {
       id: uuid(),
-      chatId: body.chatId,
-      author: client.data.user,
-      text: body.text,
+      chatId,
+      author: client.data.user as string,
+      text,
       sentAt: new Date().toISOString(),
     };
     await this.store.add("messages", message);
-    this.event$.next({
-      ev: "message",
-      data: message,
-      meta: { local: true },
-    });
+    this.event$.next({ ev: "message", data: message, meta: { local: true } });
   }
 
   @SubscribeMessage("typing")
@@ -138,12 +140,10 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @MessageBody() body: { chatId: string; isTyping: boolean }
   ) {
     const { chatId, isTyping } = body;
+    const user = client.data.user as string;
     const sockets = this.chatMembers.get(chatId);
-    if (!sockets) return;
-    for (const s of sockets) {
-      if (s !== client) {
-        s.emit("typing", { chatId, isTyping });
-      }
-    }
+    sockets?.forEach((socket) => {
+      if (socket !== client) socket.emit("typing", { chatId, isTyping, user });
+    });
   }
 }

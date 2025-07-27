@@ -12,6 +12,7 @@ import Redis from "ioredis";
 import { v4 as uuid } from "uuid";
 import { ForbiddenException, OnModuleDestroy } from "@nestjs/common";
 import { Store } from "../store/store";
+import { MessageDTO } from "src/dto";
 
 const INSTANCE_ID = uuid(); // 🎯 унікальний для кожної репліки
 @WebSocketGateway({ path: "/ws", cors: true })
@@ -39,6 +40,10 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     this.event$
       .pipe(filter((e) => e.ev === "leave"))
       .subscribe(({ data }) => this.leaveEvent(data));
+
+    this.event$
+      .pipe(filter((e) => e.ev === "send"))
+      .subscribe(({ data }) => this.sendEvent(data));
 
     this.event$
       .pipe(filter((e) => e.ev === "typing"))
@@ -109,11 +114,19 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
   }
 
   @SubscribeMessage("send")
-  onSend(
+  async onSend(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; text: string }
   ) {
-    console.log("send");
+    const author = client.handshake.auth?.user as string;
+    const { chatId, text } = body;
+    const data = await this.store.add<MessageDTO>("messages", {
+      chatId,
+      author,
+      text,
+      sentAt: new Date().toISOString(),
+    });
+    this.redis.publish("chat-events", JSON.stringify({ ev: "send", data }));
   }
 
   @SubscribeMessage("typing")
@@ -132,7 +145,6 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
   private joinEvent(data: { chatId: string; user: string }) {
     const { chatId, user } = data;
     if (!this.chatMembers.get(chatId)) {
-      console.log("not available");
       this.chatMembers.set(chatId, new Set());
     }
     const members = this.chatMembers.get(chatId);
@@ -148,6 +160,16 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     if (members?.has(user)) {
       members.delete(user);
     }
+  }
+
+  private sendEvent(data: MessageDTO) {
+    const { chatId } = data;
+    const members = this.chatMembers.get(chatId) ?? new Set<string>();
+    this.chatMembers.set(chatId, members);
+
+    members.forEach((member) => {
+      this.clients.get(member)?.emit("message", data);
+    });
   }
 
   private typingEvent(data: {

@@ -1,19 +1,17 @@
 import { writeFileSync } from "fs";
 import { join } from "path";
+import * as sharp from "sharp";
 
 const ICONS_DIR = join(process.cwd(), "public/icons");
 
-export function getIconPath(
+export async function getIconPath(
   icon: Express.Multer.File | undefined,
-  name: string
-): string {
+  id: string
+): Promise<string> {
   if (icon && ["png", "jpg", "jpeg"].includes(icon.mimetype.split("/")[1])) {
-    const ext = icon.originalname.split(".").pop();
-    const filename = `${name}.${ext}`;
-    const fullPath = join(ICONS_DIR, filename);
-    writeFileSync(fullPath, icon.buffer);
-    return `/icons/${filename}`;
+    const fullPath = join(ICONS_DIR, `${id}.png`);
+    const buffer = await sharp(icon.buffer).png().toBuffer();
+    writeFileSync(fullPath, buffer);
   }
-
-  return "/icons/default.png";
+  return `/api/users/${id}/icon`;
 }

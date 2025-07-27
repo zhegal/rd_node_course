@@ -73,7 +73,7 @@ export class ChatsController {
       await this.store.set("chats", chats);
       this.redis.publish(
         "chat-events",
-        JSON.stringify({ ev: "membersUpdated", data, src: "http" })
+        JSON.stringify({ ev: "membersUpdated", data })
       );
       if (!updatedMembers.includes(actor)) return;
       return data;

@@ -12,15 +12,12 @@ import Redis from "ioredis";
 import { v4 as uuid } from "uuid";
 import { ForbiddenException, OnModuleDestroy } from "@nestjs/common";
 import { Store } from "../store/store";
-import { ChatDTO, MessageDTO } from "src/dto";
 
 const INSTANCE_ID = uuid(); // 🎯 унікальний для кожної репліки
 @WebSocketGateway({ path: "/ws", cors: true })
 export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
   private readonly sub: Redis;
   private event$ = new Subject<{ ev: string; data: any; meta?: any }>();
-  private chatMembers = new Map<string, Set<Socket>>();
-  private socketChats = new Map<Socket, string>();
 
   constructor(private store: Store, private readonly redis: Redis) {
     this.sub = this.redis.duplicate();
@@ -32,10 +29,6 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
       console.log("Received event:", parsed);
       this.event$.next(parsed);
     });
-
-    this.event$
-      .pipe(filter((e) => e.ev === "message"))
-      .subscribe(({ data }) => this.messageEvent(data));
 
     this.event$
       .pipe(filter((e) => e.meta?.local))
@@ -66,11 +59,7 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
-    const { chatId } = body;
-    if (!this.chatMembers.get(chatId)) {
-      this.chatMembers.set(chatId, new Set());
-    }
-    this.chatMembers.get(chatId)?.add(client);
+    // throw new ForbiddenException("Not implemented yet");
   }
 
   @SubscribeMessage("leave")
@@ -78,38 +67,15 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
-    const { chatId } = body;
-    this.chatMembers.get(chatId)?.delete(client);
+    // throw new ForbiddenException("Not implemented yet");
   }
 
   @SubscribeMessage("send")
-  async onSend(
+  onSend(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; text: string }
   ) {
-    const { chatId, text } = body;
-    const author = client.handshake.auth?.user as string;
-    const chat = await this.store.find<ChatDTO>(
-      "chats",
-      (c) => c.id === chatId
-    );
-    if (chat && chat?.members.includes(author)) {
-      const data = await this.store.add<MessageDTO>("messages", {
-        chatId,
-        author,
-        text,
-        sentAt: new Date().toISOString(),
-      });
-      this.redis.publish(
-        "chat-events",
-        JSON.stringify({
-          ev: "message",
-          data,
-        })
-      );
-      return data;
-    }
-    console.log("send");
+    // throw new ForbiddenException("Not implemented yet");
   }
 
   @SubscribeMessage("typing")
@@ -117,21 +83,6 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; isTyping: boolean }
   ) {
-    const user = client.handshake.auth?.user as string;
-    const { chatId } = body;
-    const chatMembers = Array.from(this.chatMembers.get(chatId) ?? []);
-    chatMembers.forEach((socket) => {
-      if (socket !== client) {
-        socket.emit("typing", { ...body, user });
-      }
-    });
-  }
-
-  private messageEvent(data: MessageDTO) {
-    const { chatId } = data;
-    const chatMembers = Array.from(this.chatMembers.get(chatId) ?? []);
-    chatMembers.forEach((client) => {
-      client.emit("message", data);
-    });
+    // throw new ForbiddenException("Not implemented yet");
   }
 }

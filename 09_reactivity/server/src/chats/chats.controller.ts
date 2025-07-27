@@ -56,25 +56,28 @@ export class ChatsController {
     @Body() dto: { add?: string[]; remove?: string[] }
   ): Promise<ChatDTO | void> {
     if (!actor) throw new ForbiddenException("Missing X-User");
-    const chats = await this.store.list<ChatDTO>("chats");
-    const chatIndex = chats.findIndex((c) => c.id === id);
-    if (chatIndex === -1) throw new ForbiddenException("Chat not found");
-    const chat = chats[chatIndex];
-    const wasMember = chat.members.includes(actor);
-    if (!wasMember) throw new ForbiddenException("Not a member of this chat");
-    const members = new Set(chat.members);
-    dto.add?.forEach((u) => members.add(u));
-    dto.remove?.forEach((u) => members.delete(u));
-    const updatedMembers = Array.from(members);
-    const updated: ChatDTO = {
-      ...chat,
-      members: updatedMembers,
-      updatedAt: new Date().toISOString(),
-    };
-    chats[chatIndex] = updated;
-    await this.store.set("chats", chats);
-    if (!updatedMembers.includes(actor)) return;
-    return updated;
+    const chats: ChatDTO[] = await this.store.list("chats");
+    const chat = chats.find((c: ChatDTO) => c.id === id);
+    if (chat?.members.includes(actor)) {
+      const members = new Set(chat.members);
+      dto.add?.forEach((u) => members.add(u));
+      dto.remove?.forEach((u) => members.delete(u));
+      const updatedMembers = Array.from(members);
+      const data: ChatDTO = {
+        ...chat,
+        members: updatedMembers,
+        updatedAt: new Date().toISOString(),
+      };
+      const index = chats.findIndex((i) => i.id === id);
+      chats[index] = data;
+      await this.store.set("chats", chats);
+      this.redis.publish(
+        "chat-events",
+        JSON.stringify({ ev: "membersUpdated", data, src: "http" })
+      );
+      if (!updatedMembers.includes(actor)) return;
+      return data;
+    }
   }
 
   @Delete(":id")

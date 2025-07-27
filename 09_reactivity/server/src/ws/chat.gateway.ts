@@ -12,6 +12,7 @@ import Redis from "ioredis";
 import { v4 as uuid } from "uuid";
 import { ForbiddenException, OnModuleDestroy } from "@nestjs/common";
 import { Store } from "../store/store";
+import { ChatDTO, MessageDTO } from "src/dto";
 
 const INSTANCE_ID = uuid(); // 🎯 унікальний для кожної репліки
 @WebSocketGateway({ path: "/ws", cors: true })
@@ -31,6 +32,10 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
       console.log("Received event:", parsed);
       this.event$.next(parsed);
     });
+
+    this.event$
+      .pipe(filter((e) => e.ev === "message"))
+      .subscribe(({ data }) => this.messageEvent(data));
 
     this.event$
       .pipe(filter((e) => e.meta?.local))
@@ -66,7 +71,6 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
       this.chatMembers.set(chatId, new Set());
     }
     this.chatMembers.get(chatId)?.add(client);
-    this.socketChats.set(client, chatId);
   }
 
   @SubscribeMessage("leave")
@@ -78,10 +82,32 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
   }
 
   @SubscribeMessage("send")
-  onSend(
+  async onSend(
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; text: string }
   ) {
+    const { chatId, text } = body;
+    const author = client.handshake.auth?.user as string;
+    const chat = await this.store.find<ChatDTO>(
+      "chats",
+      (c) => c.id === chatId
+    );
+    if (chat && chat?.members.includes(author)) {
+      const data = await this.store.add<MessageDTO>("messages", {
+        chatId,
+        author,
+        text,
+        sentAt: new Date().toISOString(),
+      });
+      this.redis.publish(
+        "chat-events",
+        JSON.stringify({
+          ev: "message",
+          data,
+        })
+      );
+      return data;
+    }
     console.log("send");
   }
 
@@ -90,8 +116,21 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; isTyping: boolean }
   ) {
-    const { chatId, isTyping } = body;
-    const sockets = this.chatMembers.get(chatId);
-    console.log(sockets);
+    const user = client.handshake.auth?.user as string;
+    const { chatId } = body;
+    const chatMembers = Array.from(this.chatMembers.get(chatId) ?? []);
+    chatMembers.forEach((socket) => {
+      if (socket !== client) {
+        socket.emit("typing", { ...body, user });
+      }
+    });
+  }
+
+  private messageEvent(data: MessageDTO) {
+    const { chatId } = data;
+    const chatMembers = Array.from(this.chatMembers.get(chatId) ?? []);
+    chatMembers.forEach((client) => {
+      client.emit("message", data);
+    });
   }
 }

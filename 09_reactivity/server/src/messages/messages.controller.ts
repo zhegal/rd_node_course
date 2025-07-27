@@ -23,7 +23,10 @@ export class MessagesController {
     @Query("cursor") cursor?: string,
     @Query("limit") limit = "30"
   ) {
-    const chat = this.store.find<ChatDTO>("chats", (c) => c.id === chatId);
+    const chat = await this.store.find<ChatDTO>(
+      "chats",
+      (c) => c.id === chatId
+    );
     if (!chat || !chat.members.includes(user)) {
       throw new ForbiddenException("Access denied");
     }
@@ -33,7 +36,6 @@ export class MessagesController {
       .sort((a, b) => b.sentAt.localeCompare(a.sentAt));
 
     const start = cursor ? messages.findIndex((m) => m.id === cursor) + 1 : 0;
-
     const slice = messages.slice(start, start + +limit);
     const nextCursor = slice.length === +limit ? slice.at(-1)?.id : undefined;
 
@@ -49,31 +51,27 @@ export class MessagesController {
     @Param("id") chatId: string,
     @Body("text") text: string
   ): Promise<MessageDTO> {
-    const chat = this.store.find<ChatDTO>(
+    const chat = await this.store.find<ChatDTO>(
       "chats",
-      (chat) => chat.id === chatId
+      (c) => c.id === chatId
     );
     if (!chat || !chat.members.includes(author)) {
       throw new ForbiddenException("Access denied");
     }
-
-    const message = await this.store.add<MessageDTO>("messages", {
+    const data = await this.store.add<MessageDTO>("messages", {
       chatId,
       author,
       text,
       sentAt: new Date().toISOString(),
     });
 
-    const chats = await this.store.list<ChatDTO>("chats");
-    const index = chats.findIndex((c) => c.id === chatId);
-    if (index !== -1) {
-      chats[index] = {
-        ...chats[index],
-        updatedAt: message.sentAt,
-      };
-      await this.store.set("chats", chats);
-    }
-
-    return message;
+    this.redis.publish(
+      "chat-events",
+      JSON.stringify({
+        ev: "message",
+        data,
+      })
+    );
+    return data;
   }
 }

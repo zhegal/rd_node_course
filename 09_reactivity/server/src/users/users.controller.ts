@@ -15,7 +15,7 @@ import { Store } from "../store/store";
 import { getIconPath } from "./utils/getIconPath";
 import { randomUUID } from "crypto";
 import { join } from "path";
-import { existsSync } from "fs";
+import { createReadStream, existsSync } from "fs";
 
 @Controller("/api/users")
 export class UsersController {
@@ -28,7 +28,7 @@ export class UsersController {
     @UploadedFile() icon?: Express.Multer.File
   ): Promise<UserDTO> {
     const id = randomUUID();
-    const iconUrl = getIconPath(icon, name);
+    const iconUrl = await getIconPath(icon, id);
     const user = { id, name, iconUrl };
     await this.store.add("users", user);
     return user;
@@ -45,14 +45,12 @@ export class UsersController {
 
   @Get(":id/icon")
   async icon(@Param("id") id: string, @Res() res: Response) {
-    const user = this.store.find<UserDTO>("users", (u) => u.id === id);
-    const filename = user?.iconUrl?.replace("/icons/", "") || "default.png";
-    const fullPath = join(process.cwd(), "public/icons", filename);
+    const baseDir = join(process.cwd(), "public/icons");
+    const filePath = existsSync(join(baseDir, id))
+      ? join(baseDir, id)
+      : join(baseDir, "default.png");
 
-    if (!existsSync(fullPath)) {
-      return res.sendFile(join(process.cwd(), "public/icons/default.png"));
-    }
-
-    return res.sendFile(fullPath);
+    res.setHeader("Content-Type", "image/png");
+    return createReadStream(filePath).pipe(res);
   }
 }

@@ -46,8 +46,11 @@ export class Store implements OnModuleInit {
     return (this.data[key] as T[]) || [];
   }
 
-  find<T>(key: string, predicate: (item: T) => boolean): T | undefined {
-    const list = this.data[key] as T[] | undefined;
-    return list?.find(predicate);
+  async find<T>(
+    key: string,
+    predicate: (item: T) => boolean
+  ): Promise<T | undefined> {
+    const list = await this.list<T>(key);
+    return list.find(predicate);
   }
 }

@@ -64,14 +64,6 @@ export class MessagesController {
       text,
       sentAt: new Date().toISOString(),
     });
-
-    this.redis.publish(
-      "chat-events",
-      JSON.stringify({
-        ev: "message",
-        data,
-      })
-    );
     return data;
   }
 }

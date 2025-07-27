@@ -59,7 +59,7 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
-    // throw new ForbiddenException("Not implemented yet");
+    console.log("join");
   }
 
   @SubscribeMessage("leave")
@@ -67,7 +67,7 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
-    // throw new ForbiddenException("Not implemented yet");
+    console.log("leave");
   }
 
   @SubscribeMessage("send")
@@ -75,7 +75,7 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; text: string }
   ) {
-    // throw new ForbiddenException("Not implemented yet");
+    console.log("send");
   }
 
   @SubscribeMessage("typing")
@@ -83,6 +83,6 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; isTyping: boolean }
   ) {
-    // throw new ForbiddenException("Not implemented yet");
+    console.log("typing");
   }
 }

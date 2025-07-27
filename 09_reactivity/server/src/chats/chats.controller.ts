@@ -71,10 +71,6 @@ export class ChatsController {
       const index = chats.findIndex((i) => i.id === id);
       chats[index] = data;
       await this.store.set("chats", chats);
-      this.redis.publish(
-        "chat-events",
-        JSON.stringify({ ev: "membersUpdated", data })
-      );
       if (!updatedMembers.includes(actor)) return;
       return data;
     }

@@ -194,26 +194,11 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
   }) {
     const { chatId, members } = data;
     members.forEach((member) => {
-      if (
-        !this.chatMembers.get(data.chatId)?.has(member) &&
-        this.clients.has(member)
-      ) {
-        this.chatCreatedEvent({ id: chatId });
-      } else {
-        this.clients.get(member)?.emit("membersUpdated", data);
-      }
+      this.clients.get(member)?.emit("membersUpdate", data);
     });
   }
 
   private async chatCreatedEvent(data: { id: string }) {
-    const chat = await this.store.find<ChatDTO>(
-      "chats",
-      (i) => i.id === data.id
-    );
-    if (chat) {
-      chat.members.forEach((member: string) => {
-        this.clients.get(member)?.emit("chatCreated", chat);
-      });
-    }
+    console.log(data);
   }
 }

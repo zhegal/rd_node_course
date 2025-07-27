@@ -12,7 +12,7 @@ import Redis from "ioredis";
 import { v4 as uuid } from "uuid";
 import { OnModuleDestroy } from "@nestjs/common";
 import { Store } from "../store/store";
-import { MessageDTO } from "src/dto";
+import { ChatDTO, MessageDTO } from "src/dto";
 
 const INSTANCE_ID = uuid(); // 🎯 унікальний для кожної репліки
 @WebSocketGateway({ path: "/ws", cors: true })
@@ -38,6 +38,8 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
       ["leave", this.leaveEvent.bind(this)],
       ["send", this.sendEvent.bind(this)],
       ["typing", this.typingEvent.bind(this)],
+      ["membersUpdated", this.membersUpdatedEvent.bind(this)],
+      ["chatCreated", this.chatCreatedEvent.bind(this)],
     ];
 
     handlers.forEach(([ev, handler]) => {
@@ -183,5 +185,35 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
         this.clients.get(member)?.emit("typing", data);
       }
     });
+  }
+
+  private async membersUpdatedEvent(data: {
+    chatId: string;
+    members: string[];
+    updatedAt: string;
+  }) {
+    const { chatId, members } = data;
+    members.forEach((member) => {
+      if (
+        !this.chatMembers.get(data.chatId)?.has(member) &&
+        this.clients.has(member)
+      ) {
+        this.chatCreatedEvent({ id: chatId });
+      } else {
+        this.clients.get(member)?.emit("membersUpdated", data);
+      }
+    });
+  }
+
+  private async chatCreatedEvent(data: { id: string }) {
+    const chat = await this.store.find<ChatDTO>(
+      "chats",
+      (i) => i.id === data.id
+    );
+    if (chat) {
+      chat.members.forEach((member: string) => {
+        this.clients.get(member)?.emit("chatCreated", chat);
+      });
+    }
   }
 }

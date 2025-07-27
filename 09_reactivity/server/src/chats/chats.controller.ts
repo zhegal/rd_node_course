@@ -63,6 +63,7 @@ export class ChatsController {
       dto.add?.forEach((u) => members.add(u));
       dto.remove?.forEach((u) => members.delete(u));
       const updatedMembers = Array.from(members);
+      const removed = chat.members.filter((u) => !updatedMembers.includes(u));
       const data: ChatDTO = {
         ...chat,
         members: updatedMembers,
@@ -71,6 +72,17 @@ export class ChatsController {
       const index = chats.findIndex((i) => i.id === id);
       chats[index] = data;
       await this.store.set("chats", chats);
+      await this.redis.publish(
+        "chat-events",
+        JSON.stringify({
+          ev: "membersUpdated",
+          data: {
+            chatId: data.id,
+            members: data.members,
+            updatedAt: data.updatedAt,
+          },
+        })
+      );
       if (!updatedMembers.includes(actor)) return;
       return data;
     }

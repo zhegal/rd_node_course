@@ -41,6 +41,10 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
       .subscribe(({ data }) => this.leaveEvent(data));
 
     this.event$
+      .pipe(filter((e) => e.ev === "typing"))
+      .subscribe(({ data }) => this.typingEvent(data));
+
+    this.event$
       .pipe(filter((e) => e.meta?.local))
       .subscribe((e) =>
         this.redis.publish(
@@ -117,13 +121,18 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string; isTyping: boolean }
   ) {
-    console.log("typing");
+    const user = client.handshake.auth?.user as string;
+    const { chatId, isTyping } = body;
+    this.redis.publish(
+      "chat-events",
+      JSON.stringify({ ev: "typing", data: { chatId, user, isTyping } })
+    );
   }
 
   private joinEvent(data: { chatId: string; user: string }) {
     const { chatId, user } = data;
     if (!this.chatMembers.get(chatId)) {
-      console.log('not available');
+      console.log("not available");
       this.chatMembers.set(chatId, new Set());
     }
     const members = this.chatMembers.get(chatId);
@@ -139,5 +148,21 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     if (members?.has(user)) {
       members.delete(user);
     }
+  }
+
+  private typingEvent(data: {
+    chatId: string;
+    user: string;
+    isTyping: boolean;
+  }) {
+    const { chatId, user } = data;
+    const members = this.chatMembers.get(chatId) ?? new Set<string>();
+    this.chatMembers.set(chatId, members);
+
+    members.forEach((member) => {
+      if (member !== user) {
+        this.clients.get(member)?.emit("typing", data);
+      }
+    });
   }
 }

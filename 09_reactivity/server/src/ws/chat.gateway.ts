@@ -10,7 +10,7 @@ import { Subject } from "rxjs";
 import { filter } from "rxjs/operators";
 import Redis from "ioredis";
 import { v4 as uuid } from "uuid";
-import { ForbiddenException, OnModuleDestroy } from "@nestjs/common";
+import { OnModuleDestroy } from "@nestjs/common";
 import { Store } from "../store/store";
 import { MessageDTO } from "src/dto";
 
@@ -33,21 +33,18 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
       this.event$.next(parsed);
     });
 
-    this.event$
-      .pipe(filter((e) => e.ev === "join"))
-      .subscribe(({ data }) => this.joinEvent(data));
+    const handlers: [string, (data: any) => void][] = [
+      ["join", this.joinEvent.bind(this)],
+      ["leave", this.leaveEvent.bind(this)],
+      ["send", this.sendEvent.bind(this)],
+      ["typing", this.typingEvent.bind(this)],
+    ];
 
-    this.event$
-      .pipe(filter((e) => e.ev === "leave"))
-      .subscribe(({ data }) => this.leaveEvent(data));
-
-    this.event$
-      .pipe(filter((e) => e.ev === "send"))
-      .subscribe(({ data }) => this.sendEvent(data));
-
-    this.event$
-      .pipe(filter((e) => e.ev === "typing"))
-      .subscribe(({ data }) => this.typingEvent(data));
+    handlers.forEach(([ev, handler]) => {
+      this.event$
+        .pipe(filter((e) => e.ev === ev))
+        .subscribe(({ data }) => handler(data));
+    });
 
     this.event$
       .pipe(filter((e) => e.meta?.local))

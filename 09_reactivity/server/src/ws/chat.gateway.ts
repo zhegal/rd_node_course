@@ -32,14 +32,13 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
       this.event$.next(parsed);
     });
 
-    this.event$.pipe(filter((e) => e.ev === "join")).subscribe(({ data }) => {
-      const { chatId, user } = data;
-      if (!this.chatMembers.get(chatId)) {
-        this.chatMembers.set(chatId, new Set());
-      }
-      const members = this.chatMembers.get(chatId);
-      members?.add(user);
-    });
+    this.event$
+      .pipe(filter((e) => e.ev === "join"))
+      .subscribe(({ data }) => this.joinEvent(data));
+
+    this.event$
+      .pipe(filter((e) => e.ev === "leave"))
+      .subscribe(({ data }) => this.leaveEvent(data));
 
     this.event$
       .pipe(filter((e) => e.meta?.local))
@@ -68,7 +67,9 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
 
   handleDisconnect(client: Socket) {
     const user = client.handshake.auth?.user as string;
-    this.clients.delete(user);
+    if (this.clients.has(user)) {
+      this.clients.delete(user);
+    }
   }
 
   @SubscribeMessage("join")
@@ -92,7 +93,15 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
-    console.log("leave");
+    const user = client.handshake.auth?.user as string;
+    const data = { chatId: body.chatId, user };
+    this.redis.publish(
+      "chat-events",
+      JSON.stringify({
+        ev: "leave",
+        data,
+      })
+    );
   }
 
   @SubscribeMessage("send")
@@ -109,5 +118,26 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @MessageBody() body: { chatId: string; isTyping: boolean }
   ) {
     console.log("typing");
+  }
+
+  private joinEvent(data: { chatId: string; user: string }) {
+    const { chatId, user } = data;
+    if (!this.chatMembers.get(chatId)) {
+      console.log('not available');
+      this.chatMembers.set(chatId, new Set());
+    }
+    const members = this.chatMembers.get(chatId);
+    members?.add(user);
+  }
+
+  private leaveEvent(data: { chatId: string; user: string }) {
+    const { chatId, user } = data;
+    if (!this.chatMembers.get(chatId)) {
+      this.chatMembers.set(chatId, new Set());
+    }
+    const members = this.chatMembers.get(chatId);
+    if (members?.has(user)) {
+      members.delete(user);
+    }
   }
 }

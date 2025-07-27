@@ -78,7 +78,8 @@ export class ChatGateway implements OnGatewayConnection, OnModuleDestroy {
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { chatId: string }
   ) {
-    console.log("leave!!!");
+    const { chatId } = body;
+    this.chatMembers.get(chatId)?.delete(client);
   }
 
   @SubscribeMessage("send")

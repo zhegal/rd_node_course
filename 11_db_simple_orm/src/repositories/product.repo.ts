@@ -7,7 +7,7 @@ export interface Product {
   price: number;
 }
 
-const pool = new Pool({
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 

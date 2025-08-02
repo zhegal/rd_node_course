@@ -7,7 +7,17 @@ export class Orm<T extends { id: string | number }> {
 
   async findOne() {}
 
-  async save() {}
+  async save(entity: Omit<T, "id">): Promise<T> {
+    const keys = Object.keys(entity);
+    const values = Object.values(entity);
+    const placeholders = keys.map((_, i) => `$${i + 1}`).join(", ");
+
+    const query = `INSERT INTO ${this.table} (${keys.join(
+      ", "
+    )}) VALUES (${placeholders}) RETURNING *`;
+    const result = await this.pool.query(query, values);
+    return result.rows[0];
+  }
 
   async update() {}
 

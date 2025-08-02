@@ -28,7 +28,24 @@ export class Orm<T extends { id: string | number }> {
     return result.rows[0];
   }
 
-  async update() {}
+  async update(id: T["id"], patch: Partial<T>): Promise<T> {
+    const keys = Object.keys(patch);
+    const values = Object.values(patch);
 
-  async delete() {}
+    if (keys.length === 0) {
+      throw new Error("Patch object must have at least one field");
+    }
+
+    const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(", ");
+    const query = `UPDATE ${this.table} SET ${setClause} WHERE id = $${
+      keys.length + 1
+    } RETURNING *`;
+
+    const result = await this.pool.query(query, [...values, id]);
+    return result.rows[0];
+  }
+
+  async delete(id: T["id"]): Promise<void> {
+    await this.pool.query(`DELETE FROM ${this.table} WHERE id = $1`, [id]);
+  }
 }

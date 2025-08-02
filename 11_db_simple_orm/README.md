@@ -2,10 +2,10 @@
 
 Monorepo containing:
 
-* **src/** – TypeScript source code for generic ORM and `demo.ts`
-* **docker-compose.yml** – production orchestration: PostgreSQL + app container
-* **docker-compose.dev.yml** – development mode with live reload via `ts-node-dev`
-* **Dockerfile** – multi-stage build: dev / build / prod
+- **src/** – TypeScript source code for generic ORM and `demo.ts`
+- **docker-compose.yml** – production orchestration: PostgreSQL + app container
+- **docker-compose.dev.yml** – development mode with live reload via `ts-node-dev`
+- **Dockerfile** – multi-stage build: dev / build / prod
 
 ```bash
 npm install         # installs dependencies
@@ -20,9 +20,8 @@ npm run demo        # runs project in production mode (docker-compose up)
 > 2. Creates table `products` if not exists
 > 3. Saves a new product
 > 4. Fetches all products
-> 5. Fetches one by id
-> 6. Updates it
-> 7. Randomly deletes a product
-> 8. Confirms deletion
+> 5. Updates the same product
+> 6. Deletes the same product
+> 7. Tries to fetch it again (should return null)
 
 Everything is run inside Docker – PostgreSQL does not need to be installed locally.

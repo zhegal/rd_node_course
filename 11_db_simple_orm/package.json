@@ -2,12 +2,12 @@
   "name": "node_pg_simple_orm",
   "version": "1.0.0",
   "description": "Node Simple ORM",
-  "main": "dist/main.js",
+  "main": "dist/demo.js",
   "scripts": {
-    "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
-    "build": "tsc",
+    "demo": "docker compose up --build",
     "dev": "docker compose -f docker-compose.dev.yml up --build",
-    "start": "docker compose up --build"
+    "start:dev": "ts-node-dev --respawn --transpile-only src/demo.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "Evgeniy Galkovskiy",
@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
+    "@types/pg": "^8.15.5",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.2",

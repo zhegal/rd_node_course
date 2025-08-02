@@ -20,6 +20,12 @@ async function demo() {
     price: 199,
   });
   console.log("✅ Created product:", created);
+  console.log("➡️ Fetching all products...");
+  const all = await productRepo.find();
+  console.log("✅ Found products:", all);
+  console.log("➡️ Fetching one product...");
+  const one = await productRepo.findOne(created.id);
+  console.log("✅ Found one:", one);
 }
 
 demo().catch((err) => {

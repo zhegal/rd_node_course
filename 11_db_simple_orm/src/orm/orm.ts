@@ -3,9 +3,18 @@ import { Pool } from "pg";
 export class Orm<T extends { id: string | number }> {
   constructor(private table: string, private pool: Pool) {}
 
-  async find() {}
+  async find(): Promise<T[]> {
+    const result = await this.pool.query(`SELECT * FROM ${this.table}`);
+    return result.rows;
+  }
 
-  async findOne() {}
+  async findOne(id: T["id"]): Promise<T | null> {
+    const result = await this.pool.query(
+      `SELECT * FROM ${this.table} WHERE id = $1`,
+      [id]
+    );
+    return result.rows[0] ?? null;
+  }
 
   async save(entity: Omit<T, "id">): Promise<T> {
     const keys = Object.keys(entity);

@@ -2,7 +2,7 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm i
 COPY src ./src
 COPY build.mjs ./build.mjs
 RUN node build.mjs
@@ -11,7 +11,7 @@ RUN node build.mjs
 FROM node:18-alpine AS prod-deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm i --omit=dev
 
 # runtime
 FROM alpine:3.20

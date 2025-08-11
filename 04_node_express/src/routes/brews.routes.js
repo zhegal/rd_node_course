@@ -77,7 +77,7 @@ registry.registerPath({
 router.post('/', postLimiter, validate(BrewDTO), asyncHandler(ctl('create')));
 registry.registerPath({
     method: 'post',
-    path: '/api/brew',
+    path: '/api/brews',
     tags: ['Brews'],
     request: {
         body: { required: true, content: { 'application/json': { schema: BrewDTO } } },
@@ -98,7 +98,7 @@ registry.registerPath({
 router.put('/:id', validate(BrewDTO), asyncHandler(ctl('update')));
 registry.registerPath({
     method: 'put',
-    path: '/api/brew/{id}',
+    path: '/api/brews/{id}',
     tags: ['Brews'],
     request: {
         params: paramsSchema,
@@ -120,10 +120,10 @@ registry.registerPath({
     },
 });
 
-router.delete(':id', asyncHandler(ctl('remove')));
+router.delete('/:id', asyncHandler(ctl('remove')));
 registry.registerPath({
     method: 'delete',
-    path: '/api/brew/{id}',
+    path: '/api/brews/{id}',
     tags: ['Brews'],
     request: { params: paramsSchema },
     responses: {

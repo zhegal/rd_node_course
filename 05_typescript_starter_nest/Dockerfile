@@ -3,9 +3,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY tea-tracker/package*.json ./
 COPY tea-tracker/tsconfig*.json ./
-# без legacy-peer-deps не встановлюється і видає помилку
-# локально без докера таких проблем немає
-RUN npm ci --legacy-peer-deps
+RUN npm i
 COPY tea-tracker/src ./src
 RUN npm run build
 

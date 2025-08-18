@@ -17,7 +17,7 @@ import { CreateTeaDto } from './dto/create-tea.dto';
 import { UpdateTeaDto } from './dto/update-tea.dto';
 import { Pagination } from 'src/types/pagination.type';
 import { SkipThrottle } from '@nestjs/throttler';
-import { ApiBody } from '@nestjs/swagger';
+import { ApiBody, ApiQuery } from '@nestjs/swagger';
 import { Public } from 'src/decorators/public.decorator';
 
 @SkipThrottle()
@@ -27,6 +27,9 @@ export class TeaController {
 
   @Get()
   @Public()
+  @ApiQuery({ name: 'minRating', required: false, type: Number })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'pageSize', required: false, type: Number })
   async getAll(
     @Query('minRating', new DefaultValuePipe(0), ParseIntPipe)
     minRating: number,

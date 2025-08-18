@@ -17,6 +17,7 @@ async function bootstrap() {
     .setTitle('Tea Tracker API')
     .setDescription('Tea Tracker NestJS App')
     .setVersion('1.0')
+    .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'x-api-key')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);

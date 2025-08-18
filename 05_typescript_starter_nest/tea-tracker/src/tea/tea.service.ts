@@ -49,6 +49,8 @@ export class TeaService {
   }
 
   async remove(id: string): Promise<void> {
+    const tea = this.tea.get(id);
+    if (!tea) throw new NotFoundException('Tea not found');
     this.tea.delete(id);
   }
 }
